@@ -13,6 +13,10 @@ export default {
         foreground: "var(--foreground)",
       },
     },
+    colors:{
+      'purple':'rgb(44, 51, 214)',
+      'white':'rgb(255, 255, 255)',
+    }
   },
   plugins: [],
 } satisfies Config;
