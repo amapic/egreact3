@@ -56,7 +56,7 @@ const Hero = () => {
             YOU CONQUER!
           </div>
         </div>
-        <div className="absolute bottom-8 left-8 text-white text-[16px] font-['Prompt']">
+        <div className="z-10 absolute bottom-8 left-8 text-white text-[16px] font-['Prompt']">
           Scroll for more <span className="text-white text-xl font-['Prompt']">↓</span>
         </div>
       </div>
