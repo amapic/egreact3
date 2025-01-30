@@ -1,4 +1,4 @@
-'use client'
+"use client";
 import React, { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 
@@ -8,7 +8,6 @@ let isAnimating = false;
 const MenuItem = ({ text }: { text: string }) => {
   const lineRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLDivElement>(null);
-  
 
   return (
     <div className="flex items-center cursor-pointer ">
@@ -19,7 +18,10 @@ const MenuItem = ({ text }: { text: string }) => {
       >
         {text}
       </div>
-      <div ref={lineRef} className="hover:bg-white h-[3px] bg-[rgb(50,50,50)] w-[30px] z-10" />
+      <div
+        ref={lineRef}
+        className="hover:bg-white h-[3px] bg-[rgb(50,50,50)] w-[30px] z-10"
+      />
     </div>
   );
 };
@@ -34,8 +36,8 @@ const Menu = () => {
   ];
 
   const menuContainerRef = useRef<HTMLDivElement>(null);
-  const helloRef= useRef<HTMLButtonElement>(null);
-  const bOneRef=useRef<HTMLDivElement>(null);
+  const helloRef = useRef<HTMLButtonElement>(null);
+  const bOneRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const container = menuContainerRef.current;
@@ -107,7 +109,7 @@ const Menu = () => {
         y: 0, // Position finale (position actuelle)
         opacity: 1,
         duration: 2,
-        ease: "power3.out"
+        ease: "power3.out",
       }
     );
 
@@ -121,7 +123,7 @@ const Menu = () => {
         y: 0, // Position finale (position actuelle)
         opacity: 1,
         duration: 2,
-        ease: "power3.out"
+        ease: "power3.out",
       }
     );
 
@@ -135,22 +137,28 @@ const Menu = () => {
         x: 0, // Position finale (position actuelle)
         opacity: 1,
         duration: 2,
-        ease: "power3.out"
+        ease: "power3.out",
       }
     );
-
-  })
+  });
 
   return (
     <>
-    <div className="fixed h-27 w-screen bg-[rgb(16,16,16)] text-white z-10">
-     
+      <div className="fixed h-27 w-screen bg-[rgb(16,16,16)] text-white z-20"></div>
+      <div id="aa" className="absolute top-0 left-0 w-screen h-screen bg-orange">
+        aa
       </div>
       <div className="flex justify-between items-center">
-        <div ref={bOneRef} className="fixed text-white top-8 left-8 font-32 font-['Prompt'] z-20">
+        <div
+          ref={bOneRef}
+          className="fixed text-white top-8 left-8 font-32 font-['Prompt'] z-20"
+        >
           B one consulting
         </div>
-        <button ref={helloRef} className="font-20 z-20 w-48 h-9 fixed top-9 right-8 border border-purple text-purple rounded-full">
+        <button
+          ref={helloRef}
+          className="font-20 z-20 w-48 h-12 fixed top-9 right-8 border border-purple text-purple rounded-full"
+        >
           SAY HELLO
         </button>
       </div>
@@ -159,9 +167,9 @@ const Menu = () => {
         className="fixed top-30 right-10 flex flex-col gap-0 pl-1 bg-transparent"
       >
         <div className="">
-        {menuItems.map((item, index) => (
-          <MenuItem key={index} text={item} />
-        ))}
+          {menuItems.map((item, index) => (
+            <MenuItem key={index} text={item} />
+          ))}
         </div>
       </div>
     </>

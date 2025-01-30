@@ -15,21 +15,98 @@ const GsapObserverDemo = () => {
       import('gsap'),
       import('gsap/dist/ScrollTrigger'),
       import('gsap/dist/Observer'),
-    ]).then(([gsapModule, scrollTriggerModule, observerModule]) => {
+      import('gsap/dist/ScrollToPlugin'),
+    ]).then(([gsapModule, scrollTriggerModule, observerModule, scrollToModule]) => {
       const gsap = gsapModule.default;
       const Observer = observerModule.Observer;
+      const ScrollToPlugin = scrollToModule.ScrollToPlugin;
       
-      gsap.registerPlugin(Observer);
+      gsap.registerPlugin(Observer, ScrollToPlugin);
       
-      gsapModules.current = { gsap, Observer };
+      gsapModules.current = { gsap, Observer, ScrollToPlugin };
       setIsGsapReady(true);
     });
   }, []);
 
+  
+
   useEffect(() => {
     if (!isGsapReady || !sectionsRef.current) return;
 
-    const { gsap, Observer } = gsapModules.current;
+    const { gsap, Observer, ScrollToPlugin } = gsapModules.current;
+    let observer: any;
+
+    const alignSectionToViewport = () => {
+      if (!sectionsRef.current) return;
+      
+      const rect = sectionsRef.current.getBoundingClientRect();
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      
+      gsap.to(window, {
+        duration: 0.5,
+        scrollTo: scrollTop + rect.top,
+        ease: "power2.inOut"
+      });
+    };
+
+
+
+    // Fonction pour créer l'observer
+    const createObserver = () => {
+      alignSectionToViewport();
+      observer = Observer.create({
+        type: "wheel,touch,pointer",
+        wheelSpeed: -1,
+        onDown: () => {
+
+          // if (currentIndex.current <= 0){
+          //   // destroyObserver();
+          //   return;
+          // }
+          if (!animating.current) {
+            gotoSection(currentIndex.current - 1, -1);
+          }
+
+             
+        },
+        onUp: () => {
+          // if (currentIndex.current >= 2){
+          //   // destroyObserver();
+          //   return;
+          // }
+          if (!animating.current) {
+            gotoSection(currentIndex.current + 1, 1);
+          }
+        },
+        tolerance: 10,
+        preventDefault: true
+      });
+
+
+    };
+
+    // Fonction pour détruire l'observer
+    const destroyObserver = () => {
+      if (observer) {
+        observer.kill();
+        observer = null;
+      }
+    };
+
+    // Gestionnaires d'événements pour l'entrée/sortie de la souris
+    const handleMouseEnter = () => {
+      console.log('handleMouseEnter');
+      createObserver();
+    };
+
+    const handleMouseLeave = () => {
+      console.log('handleMouseLeave');
+      destroyObserver();
+    };
+
+    // Ajout des écouteurs d'événements
+    sectionsRef.current.addEventListener('mouseenter', handleMouseEnter);
+    sectionsRef.current.addEventListener('mouseleave', handleMouseLeave);
 
     const sections = sectionsRef.current.querySelectorAll('.section');
     const images = sectionsRef.current.querySelectorAll('.bg');
@@ -44,10 +121,20 @@ const GsapObserverDemo = () => {
     const wrap = gsap.utils.wrap(0, sections.length);
 
     function gotoSection(index: number, direction: number) {
+
+      // if (index < 0 && direction === -1){
+      //   // index = 0;
+      //   destroyObserver();
+      // }
+      // if (index > sections.length - 1 && direction === 1){
+      //   // index = sections.length - 1;
+      //   destroyObserver();
+      // }
       index = wrap(index);
       animating.current = true;
       
       const fromTop = direction === -1;
+
       const dFactor = fromTop ? -1 : 1;
       
       const tl = gsap.timeline({
@@ -82,23 +169,22 @@ const GsapObserverDemo = () => {
       currentIndex.current = index;
     }
 
-    const observer = Observer.create({
-      type: "wheel,touch,pointer",
-      wheelSpeed: -1,
-      onDown: () => !animating.current && gotoSection(currentIndex.current - 1, -1),
-      onUp: () => !animating.current && gotoSection(currentIndex.current + 1, 1),
-      tolerance: 10,
-      preventDefault: true
-    });
+    gotoSection(0, 1);
 
-    // gotoSection(0, 1);
-
+    // Cleanup
     return () => {
-      observer.kill();
+      if (sectionsRef.current) {
+        sectionsRef.current.removeEventListener('mouseenter', handleMouseEnter);
+        sectionsRef.current.removeEventListener('mouseleave', handleMouseLeave);
+      }
+      // destroyObserver();
+      gsap.killTweensOf(sectionsRef.current);
     };
   }, [isGsapReady]);
 
   return (
+    <>
+    
     <div ref={sectionsRef} className="w-full h-screen overflow-hidden relative">
       <div className="section absolute w-full h-full bg-pink">
         <div className="outer absolute w-full h-full overflow-hidden">
@@ -127,6 +213,7 @@ const GsapObserverDemo = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

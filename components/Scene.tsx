@@ -81,17 +81,7 @@ const CustomGeometryParticles = (props) => {
 
   const mousePos = useRef({ x: 0, y: 0 });
 
-  // useEffect(() => {
-  //   const handleMouseMove = (event: MouseEvent) => {
-  //     mousePos.current = {
-  //       x: (event.clientX / window.innerWidth) * 2 - 1,
-  //       y: -(event.clientY / window.innerHeight) * 2 + 1
-  //     };
-  //   };
-
-  //   window.addEventListener('mousemove', handleMouseMove);
-  //   return () => window.removeEventListener('mousemove', handleMouseMove);
-  // }, []);
+  
 
   useEffect(() => {
     const handleMouseMove = (event: MouseEvent) => {
@@ -119,7 +109,7 @@ const CustomGeometryParticles = (props) => {
       // Direction dans laquelle regarde la caméra
       const cameraDirectionLocal = new THREE.Vector3();
       camera.getWorldDirection(cameraDirectionLocal);
-      console.log("camera direction", cameraDirectionLocal);
+      // console.log("camera direction", cameraDirectionLocal);
       cameraDirection.current = cameraDirectionLocal;
       // camera.curren
     };
@@ -162,7 +152,7 @@ const CustomGeometryParticles = (props) => {
     const currentTime = clock.elapsedTime;
     uniforms.uTime.value = currentTime;
 
-    console.log(camera.position.x, camera.position.y, camera.position.z);
+    // console.log(camera.position.x, camera.position.y, camera.position.z);
 
     // Déclencher un éclair aléatoirement
     if (Math.random() < 0.005) {
@@ -176,8 +166,8 @@ const CustomGeometryParticles = (props) => {
     const a = -5.5;
     const b = 3.5;
     const d = -1;
-    let normalTimestep = 0.01;
-    let leaderTimestep = 0.01; // Timestep plus élevé pour les leaders
+    let normalTimestep = 0.1;
+    let leaderTimestep = 0.1; // Timestep plus élevé pour les leaders
     // Une particule sur 1000 sera un leader
     const P = new THREE.Vector3(
       mousePos.current.x * 2.0 - 1.0,
@@ -190,9 +180,9 @@ const CustomGeometryParticles = (props) => {
     camera.getWorldDirection(D);
     D.normalize();
 
-    if (currentTime > 10) {
-      normalTimestep = 0.01;
-      leaderTimestep = 0.01;
+    if (currentTime > 1) {
+      normalTimestep = 0.001;
+      leaderTimestep = 0.001;
     }
     // Paramètres de dilatation et retour
     const dilationStrength = 0.3;
@@ -289,7 +279,7 @@ const CustomGeometryParticles = (props) => {
       const t = Math.max(0, Math.min(1, timeSinceInteraction * returnSpeed));
       const mixFactor = t * t * t; // Garde la progression cubique pour la douceur
 
-      if (distance < 1.0) {
+      if (distance < 0.0) {
         // Limite la zone d'effet
         // points.current.geometry.attributes.position.array[i3] += repulsion.x;
         // points.current.geometry.attributes.position.array[i3 + 1] += repulsion.y;
@@ -423,12 +413,17 @@ const CustomGeometryParticles = (props) => {
 const ChangeCameraPosition = () => {
   const { camera } = useThree();
 
-  const caca = () => {
-    camera.position.set(0.45, -0.2, -0.71);
-  }
+    const caca = () => {
+      camera.position.set(0.45, -0.2, -0.71);
+    }
+
+    const caca2 = () => {
+      camera.position.set(-5.2, -8, -0.5);
+    }
 
   useEffect(() => {
     if (typeof window !== "undefined") {
+
       const initGSAP = async () => {
         const gsap = (await import("gsap")).default;
         const ScrollTrigger = (await import("gsap/ScrollTrigger")).default;
@@ -439,12 +434,25 @@ const ChangeCameraPosition = () => {
         ScrollTrigger.create({
           trigger: document.getElementById("screen2"),
           start: "bottom bottom",
-          markers: true,
+          // markers: true,
           onEnter: () => {
             caca()
           },
         });
+
+        ScrollTrigger.create({
+          trigger: document.getElementById("screen1"),
+          start: "bottom top",
+          // markers: true,
+          onEnter: () => {
+            // caca2()
+          },
+          onEnterBack: () => {
+            caca2()
+          }
+        });
       };
+
 
       initGSAP();
     }
@@ -458,6 +466,7 @@ export const Scene = () => {
 
   return (
     <div
+      id="screen1"
       className="fixed top-0 left-0 w-full h-screen bg-grey"
       style={{ width: "100%", height: "100vh" }}
     >
