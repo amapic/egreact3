@@ -79,7 +79,7 @@ const Screen2 = () => {
             start: "top center",
             end: "top center",
             toggleActions: "play none reset none",
-            markers: true, // Pour le debug
+            // markers: true, // Pour le debug
             onEnter: () => console.log(index),
           },
         }

@@ -1,13 +1,48 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
+import { getDistanceFromTop } from "@/utils/utils";
 
-// Variable globale pour tracker l'animation en cours
-let isAnimating = false;
-
-const MenuItem = ({ text }: { text: string }) => {
+const MenuItem = ({ text, id }: { text: string, id: string }) => {
   const lineRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  // Fonction pour vérifier si un élément est visible
+  const isElementVisible = (element: HTMLElement) => {
+    const rect = element.getBoundingClientRect();
+    return (
+      rect.top >= 0 &&
+      rect.left >= 0 &&
+      rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+      rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+    );
+  };
+
+  // Exemple d'utilisation dans un useEffect
+  useEffect(() => {
+    const element = document.getElementById(id);
+    
+    const checkVisibility = () => {
+      if (element) {
+        const isVisible = isElementVisible(element as HTMLElement);
+        setIsVisible(isVisible);
+      }
+    };
+
+    // Vérifier la visibilité au chargement et au scroll
+    // if (getDistanceFromTop(element as HTMLElement) < window.innerHeight) {
+    //   setIsVisible(true);
+    // }else{
+      // setIsVisible(false);
+      checkVisibility();
+    // }
+    window.addEventListener('scroll', checkVisibility);
+
+    return () => {
+      window.removeEventListener('scroll', checkVisibility);
+    };
+  }, [id]);
 
   return (
     <div className="flex items-center cursor-pointer ">
@@ -20,19 +55,21 @@ const MenuItem = ({ text }: { text: string }) => {
       </div>
       <div
         ref={lineRef}
-        className="hover:bg-white h-[3px] bg-[rgb(50,50,50)] w-[30px] z-10"
+        className={`hover:bg-white h-[3px] ${isVisible ? 'bg-white' : 'bg-[rgb(50,50,50)]'} w-[30px] z-10`}
       />
     </div>
   );
 };
 
 const Menu = () => {
+  // Variable globale pour tracker l'animation en cours
+  let isAnimating = false;
   const menuItems = [
-    "Introduction",
-    "Services",
-    "About Us",
-    "Clients & Partners",
-    "Contact",
+    ["Introduction","hero"],
+    ["Services","screen2"],
+    ["About Us","screen3"],
+    ["Clients & Partners","screen6"],
+    ["Contact","screen6"],
   ];
 
   const menuContainerRef = useRef<HTMLDivElement>(null);
@@ -89,11 +126,11 @@ const Menu = () => {
       });
     };
 
-    container?.addEventListener("mouseenter", handleMouseEnter);
+    container?.addEventListener("mouseover", handleMouseEnter);
     container?.addEventListener("mouseleave", handleMouseLeave);
 
     return () => {
-      container?.removeEventListener("mouseenter", handleMouseEnter);
+      container?.removeEventListener("mouseover", handleMouseEnter); 
       container?.removeEventListener("mouseleave", handleMouseLeave);
     };
   }, []);
@@ -145,9 +182,8 @@ const Menu = () => {
   return (
     <>
       <div className="fixed h-27 w-screen bg-[rgb(16,16,16)] text-white z-20"></div>
-      <div id="aa" className="absolute top-0 left-0 w-screen h-screen bg-orange">
-        aa
-      </div>
+      <div className="fixed top-27 h-2 w-screen bg-gradient-to-b from-[rgb(16,16,16)] to-transparent z-20"></div>
+
       <div className="flex justify-between items-center">
         <div
           ref={bOneRef}
@@ -164,11 +200,11 @@ const Menu = () => {
       </div>
       <div
         ref={menuContainerRef}
-        className="fixed top-30 right-10 flex flex-col gap-0 pl-1 bg-transparent"
+        className="fixed top-30 right-10 flex flex-col gap-0 pl-1 z-20 "
       >
         <div className="">
           {menuItems.map((item, index) => (
-            <MenuItem key={index} text={item} />
+            <MenuItem key={index} text={item[0]} id={item[1]} />
           ))}
         </div>
       </div>

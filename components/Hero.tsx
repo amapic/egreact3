@@ -39,11 +39,11 @@ const Hero = () => {
 
   return (
     <>
-      <div className="relative h-screen w-full flex items-center justify-center">
-        <div className="grid grid-cols-2 grid-rows-2 gap-4 pb-16">
+      <div id="hero" className="relative h-screen w-full flex items-center justify-center z-10">
+        <div className="grid grid-cols-2 grid-rows-2  pb-16">
           <div
             ref={textRef}
-            className="text-white text-7xl font-['Prompt'] text-right"
+            className="relative text-white h-titre text-7xl font-['Prompt'] text-right"
           >
             WE CREATE
           </div>
@@ -51,9 +51,10 @@ const Hero = () => {
           <div></div>
           <div
             ref={textRef2}
-            className="text-white text-7xl font-['Prompt'] text-left"
+            className="relative text-white h-titre text-7xl font-['Prompt'] text-left"
           >
             YOU CONQUER!
+            
           </div>
         </div>
         <div className="z-10 absolute bottom-8 left-8 text-white text-[16px] font-['Prompt']">

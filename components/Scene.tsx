@@ -81,8 +81,6 @@ const CustomGeometryParticles = (props) => {
 
   const mousePos = useRef({ x: 0, y: 0 });
 
-  
-
   useEffect(() => {
     const handleMouseMove = (event: MouseEvent) => {
       const x = (event.clientX / window.innerWidth) * 2 - 1;
@@ -410,20 +408,57 @@ const CustomGeometryParticles = (props) => {
   );
 };
 
-const ChangeCameraPosition = () => {
+const ChangeCameraPosition = ({
+  param,
+}: {
+  param: React.RefObject<number>;
+}) => {
   const { camera } = useThree();
 
-    const caca = () => {
-      camera.position.set(0.45, -0.2, -0.71);
-    }
+  const change1 = () => {
+    camera.position.set(0.45, -0.2, -0.71);
+  };
 
-    const caca2 = () => {
-      camera.position.set(-5.2, -8, -0.5);
+  const change2 = () => {
+    camera.position.set(-5.2, -8, -0.5);
+  };
+
+  const change3 = () => {
+    const element = document.getElementById("interstitial");
+    if (!element) return;  // Protection contre element null
+
+    if (window.scrollY - element.offsetTop > 0) {
+      camera.position.set(
+        0.45,
+        -0.2,
+        -0.71 - (window.scrollY - element.offsetTop) / (3 * window.innerHeight)
+      );
     }
+  };
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
+    if (document && typeof window !== "undefined") {
+      let ticking = false;
 
+      const handleScroll = () => {
+        if (!ticking) {
+          window.requestAnimationFrame(() => {
+            change3();
+            ticking = false;
+          });
+          ticking = true;
+        }
+      };
+
+      document.addEventListener("scroll", handleScroll);
+      return () => document.removeEventListener("scroll", handleScroll);
+    }
+  }, []); // Dépendances vides pour n'exécuter qu'une seule fois
+
+  useEffect(() => {
+    // camera.position.set(camera.position.x, camera.position.y, param.current/100);
+    // console.log(param.current);
+    if (typeof window !== "undefined") {
       const initGSAP = async () => {
         const gsap = (await import("gsap")).default;
         const ScrollTrigger = (await import("gsap/ScrollTrigger")).default;
@@ -436,7 +471,7 @@ const ChangeCameraPosition = () => {
           start: "bottom bottom",
           // markers: true,
           onEnter: () => {
-            caca()
+            change1();
           },
         });
 
@@ -448,22 +483,19 @@ const ChangeCameraPosition = () => {
             // caca2()
           },
           onEnterBack: () => {
-            caca2()
-          }
+            change2();
+          },
         });
       };
 
-
       initGSAP();
     }
-  }, []);
+  }, [param.current]);
 
   return null;
 };
 
-export const Scene = () => {
-  const sphere = new THREE.SphereGeometry(0.01, 32, 32);
-
+export const Scene = ({ param }: { param: React.RefObject<number> }) => {
   return (
     <div
       id="screen1"
@@ -496,7 +528,7 @@ export const Scene = () => {
           enablePan={false}
           enableRotate={true}
         />
-        <ChangeCameraPosition />
+        <ChangeCameraPosition param={param} />
         {/* <axesHelper args={[1]} /> */}
       </Canvas>
     </div>

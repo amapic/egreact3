@@ -14,6 +14,8 @@ const ScrollToPlugin = dynamic(
   { ssr: false }
 );
 
+import { getDistanceFromTop } from "@/utils/utils";
+
 const Screen2 = () => {
   const [isGsapReady, setIsGsapReady] = useState(false);
   const gsapModules = useRef<any>({});
@@ -21,6 +23,8 @@ const Screen2 = () => {
   const sectionsRef = useRef<HTMLDivElement[]>([]);
   const numbersRef = useRef<HTMLDivElement[]>([]);
   const bottomBarRef = useRef<HTMLDivElement>(null);
+  // Ajout d'une ref pour suivre le dernier déclenchement
+  const lastTriggerTime = useRef<number>(0);
 
   useEffect(() => {
     Promise.all([
@@ -38,6 +42,12 @@ const Screen2 = () => {
     });
   }, []);
 
+  function getDistanceFromTop(element: HTMLElement) {
+    const rect = element.getBoundingClientRect();
+    const scrollTop = window.scrollY || document.documentElement.scrollTop;
+    return rect.top + scrollTop;
+}
+
   useEffect(() => {
     if (!isGsapReady || !containerRef.current) return;
 
@@ -45,6 +55,10 @@ const Screen2 = () => {
 
     // Timeline pour les transitions entre sections
     const tl = gsap.timeline();
+
+    const element = document.querySelector("#screen2");
+    const elementAfter = document.querySelector("#screen3");
+    // const elementBefore = document.querySelector("#screen1");
 
     // Pin the entire section
     const mainTrigger = ScrollTrigger.create({
@@ -54,52 +68,24 @@ const Screen2 = () => {
       end: "+=50%",
       ease: "power2.inOut",
       scrub: 1,
-      animation: tl,
-      // markers: true,
-      // onEnter: () => {
-      //   // const element = document.getElementById("screen2");
-      //   // if (!element) return;
-      //   // const elementHeight = element.offsetHeight;
-      //   // gsap.to(window, {
-      //   //   duration: 1,
-      //   //   scrollTo: {
-      //   //     y: element.offsetTop + (elementHeight * 2), // 400% = 4 * height
-      //   //     ease: "power2.inOut"
-      //   //   }
-      //   // });
-      // },
+      animation: tl
+ 
     });
 
-    const mainTrigger2 = ScrollTrigger.create({
+    const mainTriggerAnimLocal = ScrollTrigger.create({
       trigger: containerRef.current,
       start: "top center",
       end: "bottom center",
       ease: "power2.inOut",
       animation: tl,
-
+      // markers: true,
       onEnter: () => {
         const element = document.getElementById("screen2");
         if (!element) return;
 
         const tl2 = gsap.timeline();
 
-        // Désactive le scroll
-        document.body.style.overflow = "hidden";
-
-        const elementHeight = element.offsetHeight;
-
-        //animation fenetre
-        tl2.to(window, {
-          duration: 1,
-          scrollTo: {
-            y: element.offsetTop + elementHeight,
-            ease: "power2.inOut",
-          },
-          onComplete: () => {
-            // Réactive le scroll une fois l'animation terminée
-            // document.body.style.overflow = "";
-          },
-        });
+        
 
         numbersRef.current.forEach((number, index) => {
           tl2.fromTo(number,
@@ -136,45 +122,77 @@ const Screen2 = () => {
 
         
       },
-      onLeave: () => {
+  
+    });
+
+    const mainTriggerUp = ScrollTrigger.create({
+      trigger: element,
+      start: "top 5%",
+      end: "top 5%",
+      // markers: true,
+      onEnterBack: () => {
         document.body.style.overflow = "hidden";
-        const tl3 = gsap.timeline();
-        const element = document.getElementById("screen3");
-        if (!element) return;
-        const elementHeight = element.offsetHeight;
-        tl3.to(window, {
-          duration: 1,
+        gsap.to(window, {
           scrollTo: {
-            y: element.offsetTop,
+            y: 0,
             ease: "power2.inOut",
           },
+          duration: 1,
           onComplete: () => {
-            // Réactive le scroll une fois l'animation terminée
             document.body.style.overflow = "";
           },
         });
       },
-      // markers: true,
     });
 
-    // Animation des numéros
-    
 
-    // Animation de la barre du bas
+    const mainTriggerDown = ScrollTrigger.create({
+      trigger: containerRef.current,
+      start: "bottom 95%",
+      end: "bottom 95%",
+      // markers: true,
+      onEnter: () => {
+        // Vérifier si suffisamment de temps s'est écoulé depuis le dernier déclenchement
+        document.body.style.overflow = "hidden";
+        gsap.to(window, {
+          scrollTo: {
+            y: getDistanceFromTop(elementAfter as HTMLElement),
+            ease: "power2.inOut",
+          },
+          duration: 1,
+          onComplete: () => {
+            document.body.style.overflow = "";
+          },
+        });
+      }
+    });
 
-    // Ajouter les animations à la timeline
-    // sectionsRef.current.forEach((section, index) => {
-    //   if (index < sectionsRef.current.length - 1) {
-    //     tl.to(section, {
-    //       yPercent: -100,
-    //       ease: "none"
-    //     }, index);
-    //   }
-    // });
+    const mainTriggerOwnCenter = ScrollTrigger.create({
+      trigger: containerRef.current,
+      start: "top 95%",
+      end: "bottom 95%",
+      // markers: true,
+      onEnter: () => {
+        // Mettre à jour le timestamp du dernier déclenchement
+        lastTriggerTime.current = Date.now();
+        
+        gsap.to(window, {
+          scrollTo: {
+            y: getDistanceFromTop(element as HTMLElement),
+            ease: "power2.inOut",
+          },
+          duration: 1,
+        });
+      }
+    });
+       
 
     return () => {
       mainTrigger.kill();
-      mainTrigger2.kill();
+      mainTriggerAnimLocal.kill();
+      mainTriggerDown.kill();
+      mainTriggerUp.kill();
+      mainTriggerOwnCenter.kill();
       ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
     };
   }, [isGsapReady]);

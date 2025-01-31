@@ -2,7 +2,6 @@
 
 import React, { useEffect, useRef, useState } from "react";
 
-
 // import dynamic from "next/dynamic";
 import dynamic from "next/dynamic";
 const gsap = dynamic(() => import("gsap"), { ssr: false });
@@ -14,6 +13,8 @@ const ScrollToPlugin = dynamic(
   () => import("gsap/ScrollToPlugin").then((mod) => mod.ScrollToPlugin),
   { ssr: false }
 );
+
+import { getDistanceFromTop } from "@/utils/utils";
 
 export function Screen3() {
   const [val1, setVal1] = useState(0);
@@ -45,7 +46,7 @@ export function Screen3() {
       const element = document.querySelector("#screen3");
       // const element2 = document.querySelector("#screen5");
 
-      if (!element ) {
+      if (!element) {
         console.warn("Required elements not found");
         return;
       }
@@ -78,7 +79,7 @@ export function Screen3() {
         clearInterval(timeInterval4);
       };
     }
-  }, [val1, val2, val3, val4, isVisible,isGsapReady]);
+  }, [val1, val2, val3, val4, isVisible, isGsapReady]);
 
   useEffect(() => {
     // Register GSAP plugins
@@ -88,33 +89,29 @@ export function Screen3() {
 
     const { gsap, ScrollTrigger } = gsapModules.current;
     const element = document.querySelector("#screen3");
-    // const element2 = document.querySelector("#screen4");
+    const elementBefore = document.querySelector("#screen2");
 
     if (!element) {
       console.warn("Required elements not found");
       return;
     }
 
-    // Select elements
-    // const element = document.querySelector("#screen3");
-
-    
-
     // Create the scroll trigger animation
     const scrollTrigger = ScrollTrigger.create({
       trigger: element,
 
-      start: "top center",
+      start: "top 95%",
       end: "bottom center",
-      markers: true,
+      // markers: true,
       onEnter: () => {
-        gsap.to(window, {
-          scrollTo: {
-            y: element.offsetTop,
-            offsetY: 0,
-          },
-          duration: 1,
-        });
+        // alert("enter");
+        // gsap.to(window, {
+        //   scrollTo: {
+        //     y: element.offsetTop,
+        //     offsetY: 0,
+        //   },
+        //   duration: 1,
+        // });
         setTimeout(() => {
           setIsVisible(true);
         }, 1000);
@@ -124,9 +121,31 @@ export function Screen3() {
       },
     });
 
+    const mainTriggerUp = ScrollTrigger.create({
+      trigger: document.getElementById("screen3"),
+      start: "top 5%",
+      end: "top 5%",
+      // markers: true,
+      onEnterBack: () => {
+        document.body.style.overflow = "hidden";
+        gsap.to(window, {
+          scrollTo: {
+            y: getDistanceFromTop(elementBefore as HTMLElement),
+            ease: "power2.inOut",
+          },
+          duration: 1,
+          onComplete: () => {
+            document.body.style.overflow = "";
+          },
+        });
+      },
+    });
+
     // Cleanup function
     return () => {
       scrollTrigger.kill();
+      mainTriggerUp.kill();
+      // mainTriggerDown.kill();
     };
   }, [isGsapReady]);
 
@@ -192,50 +211,21 @@ export const Screen4 = () => {
 
     const { gsap, ScrollTrigger } = gsapModules.current;
     const element = document.querySelector("#screen4");
-    const element2 = document.querySelector("#screen5");
+    const elementAfter = document.querySelector("#screen5");
+    // const elementBefore = document.querySelector("#screen4");
 
-    if (!element || !element2) {
-      console.warn("Required elements not found");
-      return;
-    }
-
-    const scrollTrigger = ScrollTrigger.create({
+    const mainTriggerDown = ScrollTrigger.create({
       trigger: element,
-      start: "top center",
-      end: "bottom center",
-      markers: true,
+      start: "bottom 95%",
+      end: "bottom 95%",
+      // markers: true,
       onEnter: () => {
+        // alert("back");
         document.body.style.overflow = "hidden";
         gsap.to(window, {
           scrollTo: {
-            y: element.offsetTop,
-            offsetY: 0,
-          },
-          duration: 1,
-          onComplete: () => {
-            document.body.style.overflow = "";
-          },
-        });
-      },
-      onLeave: () => {
-        document.body.style.overflow = "hidden";
-        gsap.to(window, {
-          scrollTo: {
-            y: element2.offsetTop,
-            offsetY: 0,
-          },
-          duration: 1,
-          onComplete: () => {
-            document.body.style.overflow = "";
-          },
-        });
-      },
-      onEnterBack: () => {
-        document.body.style.overflow = "hidden";
-        gsap.to(window, {
-          scrollTo: {
-            y: element.offsetTop,
-            offsetY: 0,
+            y: getDistanceFromTop(elementAfter as HTMLElement),
+            ease: "power2.inOut",
           },
           duration: 1,
           onComplete: () => {
@@ -245,8 +235,11 @@ export const Screen4 = () => {
       },
     });
 
+    
+
     return () => {
-      scrollTrigger.kill();
+      mainTriggerDown.kill();
+      // mainTriggerUp.kill();
     };
   }, [isGsapReady]);
 
@@ -297,22 +290,41 @@ export const Screen5 = () => {
 
     const { gsap, ScrollTrigger } = gsapModules.current;
     const element = document.querySelector("#screen5");
+    const elementAfter = document.querySelector("#screen6");
+    const elementBefore = document.querySelector("#screen4");
 
-    if (!element) {
-      console.warn("Required elements not found");
-      return;
-    }
-
-    const scrollTrigger = ScrollTrigger.create({
+    const mainTriggerDown = ScrollTrigger.create({
       trigger: element,
-      start: "top center",
-      end: "bottom center",
+      start: "bottom 95%",
+      end: "bottom 95%",
+      // markers: true,
       onEnter: () => {
         document.body.style.overflow = "hidden";
         gsap.to(window, {
           scrollTo: {
-            y: element.offsetTop,
-            offsetY: 0,
+            y: getDistanceFromTop(elementAfter as HTMLElement),
+            ease: "power2.inOut",
+          },
+          duration: 1,
+          onComplete: () => {
+            document.body.style.overflow = "";
+          },
+        });
+      },
+    });
+
+    const mainTriggerUp = ScrollTrigger.create({
+      trigger: element,
+      start: "top 5%",
+      end: "top 5%",
+      // markers: true,
+      onEnterBack: () => {
+        // alert("back");
+        document.body.style.overflow = "hidden";
+        gsap.to(window, {
+          scrollTo: {
+            y: getDistanceFromTop(elementBefore as HTMLElement),
+            ease: "power2.inOut",
           },
           duration: 1,
           onComplete: () => {
@@ -323,7 +335,8 @@ export const Screen5 = () => {
     });
 
     return () => {
-      scrollTrigger.kill();
+      mainTriggerDown.kill();
+      mainTriggerUp.kill();
     };
   }, [isGsapReady]);
 

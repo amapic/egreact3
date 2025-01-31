@@ -31,8 +31,8 @@ const RippleShaderMaterial = () => {
         uTime: { value: 0 },
         uClicks: { value: Array(10).fill().map(() => new Vector2(0, 0)) },
         uClickTimes: { value: new Float32Array(10) },
-        uColor1: { value: new THREE.Vector3(0.0, 0.0, 0.3) },
-        uColor2: { value: new THREE.Vector3(0.0, 0.0, 0.0) },
+        uColor1: { value: new THREE.Vector3(0.0, 0.0, 0.2) },
+        uColor2: { value: new THREE.Vector3(16/255, 16/255, 16/255) },
         uWaveSpeed: { value: WAVE_SPEED },
         uWaveLifetime: { value: WAVE_LIFETIME },
         uWaveSpread: { value: WAVE_SPREAD },
@@ -73,15 +73,21 @@ const RippleShaderMaterial = () => {
           float baseDist = distance(scaledUv, center);
           float haloIntensity = 1.0 - smoothstep(uBaseRadius - uHaloStep, uBaseRadius + uHaloStep, baseDist);
           vec3 blueColor = vec3(0.0, 0.0, 0.5);
-          color += blueColor * pow(haloIntensity, 2.0); // pow pour un dégradé plus doux
+          vec3 baseColor = blueColor * pow(haloIntensity, 2.0);
 
           // Ondes avec correction d'aspect
+          vec3 waveColor = vec3(0.0);
           for(int i = 0; i < 10; i++) {
             vec2 clickPos = uClicks[i];
             float clickTime = uClickTimes[i];
             if(clickTime == 0.0) continue;
             
             vec2 scaledClickPos = (clickPos - center) * aspect + center;
+            float clickDist = distance(scaledClickPos, center);
+            
+            // On ignore les clics en dehors du cercle de base
+            if(clickDist > uBaseRadius) continue;
+            
             float dist = distance(scaledUv, scaledClickPos);
             
             float timeSinceClick = uTime - clickTime;
@@ -93,9 +99,15 @@ const RippleShaderMaterial = () => {
             float distanceFade = smoothstep(radius + 0.1, radius - 0.1, dist);
             wave *= fadeOut * distanceFade;
             
-            vec3 waveColor = mix(uColor1, uColor2, wave);
-            color += waveColor * wave * 0.5;
+            waveColor += mix(uColor1, uColor2, wave) * wave * 0.5;
           }
+
+          // Halo noir extérieur qui écrase progressivement les couleurs
+          float haloIntensity2 = smoothstep(uBaseRadius - uHaloStep, uBaseRadius + uHaloStep, baseDist);
+          vec3 blackColor = vec3(16/255, 16/255, 16/255);
+          
+          // Mélange final
+          color = mix(baseColor + waveColor, blackColor, pow(haloIntensity2, 2.0));
           
           gl_FragColor = vec4(color, 1.0);
         }
@@ -161,7 +173,7 @@ const RippleShaderMaterial = () => {
 
 const RippleShaderFiber = () => {
   return (
-    <div className="fixed top-0 left-0 w-screen h-screen" style={{ zIndex: -1 }}>
+    <div id="ripple" className="absolute top-0 left-0 w-full h-screen bg-orange" style={{ zIndex: -1 }}>
       <Canvas
         camera={{
           position: [0, 0, 1],
