@@ -26,6 +26,9 @@ const Screen2 = () => {
   // Ajout d'une ref pour suivre le dernier déclenchement
   const lastTriggerTime = useRef<number>(0);
 
+  const AnimationClipCreator = useRef(false);
+  // const [isRippleActive, setIsRippleActive] = useState(false);
+
   useEffect(() => {
     Promise.all([
       import("gsap"),
@@ -61,16 +64,16 @@ const Screen2 = () => {
     // const elementBefore = document.querySelector("#screen1");
 
     // Pin the entire section
-    const mainTrigger = ScrollTrigger.create({
-      trigger: containerRef.current,
-      pin: true,
-      start: "top top",
-      end: "+=50%",
-      ease: "power2.inOut",
-      scrub: 1,
-      animation: tl
+    // const mainTrigger = ScrollTrigger.create({
+    //   trigger: containerRef.current,
+    //   pin: true,
+    //   start: "top top",
+    //   end: "+=50%",
+    //   ease: "power2.inOut",
+    //   scrub: 1,
+    //   animation: tl
  
-    });
+    // });
 
     const mainTriggerAnimLocal = ScrollTrigger.create({
       trigger: containerRef.current,
@@ -113,14 +116,20 @@ const Screen2 = () => {
             yPercent: 0,
             opacity: 1,
             onComplete: () => {
+              // alert("ok")
               document.body.style.overflow = "";
+              setTimeout(() => {
+                AnimationClipCreator.current=true
+              }, 1000);
             }
             
+
           },
-          ">"
+          ">",
         );
 
         
+
       },
   
     });
@@ -188,7 +197,7 @@ const Screen2 = () => {
        
 
     return () => {
-      mainTrigger.kill();
+      // mainTrigger.kill();
       mainTriggerAnimLocal.kill();
       mainTriggerDown.kill();
       mainTriggerUp.kill();
@@ -201,7 +210,7 @@ const Screen2 = () => {
     <div
       ref={containerRef}
       id="screen2"
-      className="min-h-screen bg-[rgb(16,16,16)] text-white overflow-hidden"
+      className="min-h-screen bg-[rgb(16,16,16)] text-white overflow-hidden z-40"
     >
       <h1 className="ml-8 text-3xl xl:text-5xl mt-32 mb-24 bg-gradient-to-b from-gray-900 to-white bg-clip-text text-transparent">
         360° SERVICES
@@ -221,17 +230,19 @@ const Screen2 = () => {
           >
             <div
               ref={(el) => el && (numbersRef.current[index] = el)}
-              className="gradient-text-mask text-[3rem] sm:text-[3rem] md:text-[8rem] text-[12rem] mb-8"
+              className={`${AnimationClipCreator.current ? "gradient-text-mask" : ""} text-[3rem] sm:text-[3rem] md:text-[8rem] text-[12rem] mb-8`}
             >
               {String(index + 1).padStart(2, "0")}
             </div>
-            <div className="gradient-text-mask md:text-lg lg:text-xl xl:text-3xl text-ellipsis overflow-hidden">
+
+            <div className={` ${AnimationClipCreator.current ? "gradient-text-mask" : ""} md:text-lg lg:text-xl xl:text-3xl text-ellipsis overflow-hidden`}>
               {service.split(" & ").map((line, i) => (
                 <React.Fragment key={i}>
                   {line}
                   {i === 0 && <br />}
                 </React.Fragment>
               ))}
+
             </div>
           </div>
         ))}

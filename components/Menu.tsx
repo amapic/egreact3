@@ -7,7 +7,7 @@ const MenuItem = ({ text, id }: { text: string, id: string }) => {
   const lineRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
-
+  let element: HTMLElement | null = null;
   // Fonction pour vérifier si un élément est visible
   const isElementVisible = (element: HTMLElement) => {
     const rect = element.getBoundingClientRect();
@@ -21,7 +21,7 @@ const MenuItem = ({ text, id }: { text: string, id: string }) => {
 
   // Exemple d'utilisation dans un useEffect
   useEffect(() => {
-    const element = document.getElementById(id);
+    element = document.getElementById(id);
     
     const checkVisibility = () => {
       if (element) {
@@ -30,13 +30,8 @@ const MenuItem = ({ text, id }: { text: string, id: string }) => {
       }
     };
 
-    // Vérifier la visibilité au chargement et au scroll
-    // if (getDistanceFromTop(element as HTMLElement) < window.innerHeight) {
-    //   setIsVisible(true);
-    // }else{
-      // setIsVisible(false);
-      checkVisibility();
-    // }
+    
+    checkVisibility();
     window.addEventListener('scroll', checkVisibility);
 
     return () => {
@@ -54,6 +49,13 @@ const MenuItem = ({ text, id }: { text: string, id: string }) => {
         {text}
       </div>
       <div
+        onClick={() => {
+          gsap.to(window, {
+            scrollTo: { y: getDistanceFromTop(element as HTMLElement) },
+            duration: 2,
+            ease: "power3.out",
+          });
+        }}
         ref={lineRef}
         className={`hover:bg-white h-[3px] ${isVisible ? 'bg-white' : 'bg-[rgb(50,50,50)]'} w-[30px] z-10`}
       />

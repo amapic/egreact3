@@ -1,21 +1,20 @@
 "use client";
 import { useMemo, useRef, useEffect, useState } from "react";
-import { OrbitControls, MeshTransmissionMaterial } from "@react-three/drei";
-import {
-  Canvas,
-  useFrame,
-  extend,
-  useThree,
-  AmbientLight,
-} from "@react-three/fiber";
+import { OrbitControls, Stats } from "@react-three/drei";
+import { Canvas, useFrame, extend, useThree } from "@react-three/fiber";
 
 import * as THREE from "three";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import React from "react";
 
 extend({ Bloom });
-const CustomGeometryParticles = (props) => {
-  const { count } = props;
+const CustomGeometryParticles = (props: {
+  count: number;
+  setFrameCounter: (count: number) => void;
+  setCameraPosition: (pos: { x: number; y: number; z: number }) => void;
+  setCameraRotation: (rot: { x: number; y: number; z: number }) => void;
+}) => {
+  const { count, setFrameCounter, setCameraPosition, setCameraRotation } = props;
   const points = useRef();
   const referencePoints = useRef(); // Points de référence non affichés
   const sphereRefs = useRef([]);
@@ -145,7 +144,12 @@ const CustomGeometryParticles = (props) => {
     );
   }, [count]);
 
+  const frameCount = useRef(0);
+
   useFrame((state) => {
+    frameCount.current++;
+    setFrameCounter(frameCount.current);
+
     const { clock, camera, mouse } = state;
     const currentTime = clock.elapsedTime;
     uniforms.uTime.value = currentTime;
@@ -178,7 +182,8 @@ const CustomGeometryParticles = (props) => {
     camera.getWorldDirection(D);
     D.normalize();
 
-    if (currentTime > 1) {
+    // if (currentTime > 1) {
+    if (frameCount.current > 60) {
       normalTimestep = 0.001;
       leaderTimestep = 0.001;
     }
@@ -202,7 +207,7 @@ const CustomGeometryParticles = (props) => {
       // Utiliser le timestep spécifique à la particule
       const isLeader = i % leaderFrequency === 0;
       // const timestep = isLeader ? leaderTimestep : particleTimesteps.current[i];
-      const timestep = leaderTimestep;
+      var timestep = leaderTimestep;
       // Position actuelle du point
       // const pos = {
       //   x: points.current.geometry.attributes.position.array[i3],
@@ -253,11 +258,13 @@ const CustomGeometryParticles = (props) => {
       // const isLeader = i % leaderFrequency === 0;
       // const timestep = isLeader ? leaderTimestep : particleTimesteps.current[i];
 
-      const refPos = {
-        x: referencePoints.current.geometry.attributes.position.array[i3],
-        y: referencePoints.current.geometry.attributes.position.array[i3 + 1],
-        z: referencePoints.current.geometry.attributes.position.array[i3 + 2],
-      };
+      // const refPos = {
+      //   x: referencePoints.current.geometry.attributes.position.array[i3],
+      //   y: referencePoints.current.geometry.attributes.position.array[i3 + 1],
+      //   z: referencePoints.current.geometry.attributes.position.array[i3 + 2],
+      // };
+
+      const refPos = pos;
 
       // Équations de Halvorsen avec le timestep variable
       const dx = refPos.y * timestep;
@@ -266,10 +273,44 @@ const CustomGeometryParticles = (props) => {
         (-a * refPos.x - b * refPos.y - refPos.z + d * Math.pow(refPos.x, 3)) *
         timestep;
 
+      function frameAdvance() {
+        while (frameCount.current < 2500) {
+          console.log("frameCount.current", frameCount.current);
+          var dx = points.current.geometry.attributes.position.array[i3 + 1] * leaderTimestep;
+          var dy = points.current.geometry.attributes.position.array[i3 + 2]  * leaderTimestep;
+          var dz =
+            (-a * points.current.geometry.attributes.position.array[i3] -
+              b * points.current.geometry.attributes.position.array[i3 + 1] -
+              points.current.geometry.attributes.position.array[i3 + 2]  +
+              d * Math.pow(points.current.geometry.attributes.position.array[i3], 3)) *
+              leaderTimestep;
+
+          points.current.geometry.attributes.position.array[i3] += dx;
+          points.current.geometry.attributes.position.array[i3 + 1] += dy;
+          points.current.geometry.attributes.position.array[i3 + 2] += dz;
+          frameCount.current++;
+          frameAdvance();
+        } 
+        if (frameCount.current > 2500) {
+          leaderTimestep = 0.01;
+          // timestep = leaderTimestep;
+        }
+
+      }
+      // frameAdvance();
+
+
+
       // Mise à jour des positions de référence
-      referencePoints.current.geometry.attributes.position.array[i3] += dx;
-      referencePoints.current.geometry.attributes.position.array[i3 + 1] += dy;
-      referencePoints.current.geometry.attributes.position.array[i3 + 2] += dz;
+      // referencePoints.current.geometry.attributes.position.array[i3] += dx;
+      // referencePoints.current.geometry.attributes.position.array[i3 + 1] += dy;
+
+
+      // referencePoints.current.geometry.attributes.position.array[i3 + 2] += dz;
+
+      points.current.geometry.attributes.position.array[i3] += dx;
+      points.current.geometry.attributes.position.array[i3 + 1] += dy;
+      points.current.geometry.attributes.position.array[i3 + 2] += dz;
 
       // Calculer le facteur de mélange avec la vitesse de retour
       const timeSinceInteraction =
@@ -308,12 +349,12 @@ const CustomGeometryParticles = (props) => {
         //     dilatedPos.z * (1 - mixFactor) + referencePoints.current.geometry.attributes.position.array[i3 + 2] * mixFactor;
       } else {
         // Si pas d'effet de dilatation, suivre directement la position de référence
-        points.current.geometry.attributes.position.array[i3] =
-          referencePoints.current.geometry.attributes.position.array[i3];
-        points.current.geometry.attributes.position.array[i3 + 1] =
-          referencePoints.current.geometry.attributes.position.array[i3 + 1];
-        points.current.geometry.attributes.position.array[i3 + 2] =
-          referencePoints.current.geometry.attributes.position.array[i3 + 2];
+        // points.current.geometry.attributes.position.array[i3] =
+        //   referencePoints.current.geometry.attributes.position.array[i3];
+        // points.current.geometry.attributes.position.array[i3 + 1] =
+        //   referencePoints.current.geometry.attributes.position.array[i3 + 1];
+        // points.current.geometry.attributes.position.array[i3 + 2] =
+        //   referencePoints.current.geometry.attributes.position.array[i3 + 2];
       }
     }
 
@@ -335,7 +376,19 @@ const CustomGeometryParticles = (props) => {
     });
 
     points.current.geometry.attributes.position.needsUpdate = true;
-    referencePoints.current.geometry.attributes.position.needsUpdate = true;
+    // referencePoints.current.geometry.attributes.position.needsUpdate = true;
+
+    setCameraPosition({
+      x: camera.position.x,
+      y: camera.position.y,
+      z: camera.position.z,
+    });
+    
+    setCameraRotation({
+      x: camera.rotation.x,
+      y: camera.rotation.y,
+      z: camera.rotation.z,
+    });
   });
 
   return (
@@ -416,23 +469,23 @@ const ChangeCameraPosition = ({
   const { camera } = useThree();
 
   const change1 = () => {
-    camera.position.set(0.45, -0.2, -0.71);
+    // camera.position.set(0.45, -0.2, -0.71);
   };
 
   const change2 = () => {
-    camera.position.set(-5.2, -8, -0.5);
+    // camera.position.set(-5.2, -8, -0.5);
   };
 
   const change3 = () => {
     const element = document.getElementById("interstitial");
-    if (!element) return;  // Protection contre element null
+    if (!element) return; // Protection contre element null
 
     if (window.scrollY - element.offsetTop > 0) {
-      camera.position.set(
-        0.45,
-        -0.2,
-        -0.71 - (window.scrollY - element.offsetTop) / (3 * window.innerHeight)
-      );
+      // camera.position.set(
+      //   0.45,
+      //   -0.2,
+      //   -0.71 - (window.scrollY - element.offsetTop) / (3 * window.innerHeight)
+      // );
     }
   };
 
@@ -496,16 +549,27 @@ const ChangeCameraPosition = ({
 };
 
 export const Scene = ({ param }: { param: React.RefObject<number> }) => {
+  const [frameCounter, setFrameCounter] = useState(0);
+  const [cameraPosition, setCameraPosition] = useState({ x: 0, y: 0, z: 0 });
+  const [cameraRotation, setCameraRotation] = useState({ x: 0, y: 0, z: 0 });
+
   return (
     <div
       id="screen1"
       className="fixed top-0 left-0 w-full h-screen bg-grey"
       style={{ width: "100%", height: "100vh" }}
     >
+      <div className="fixed top-20 left-4 text-white z-50 font-mono">
+        Frames: {frameCounter}
+      </div>
+      <div className="fixed top-28 left-4 text-white z-50 font-mono">
+        Camera: x:{cameraPosition.x.toFixed(2)} y:{cameraPosition.y.toFixed(2)} z:{cameraPosition.z.toFixed(2)}
+      </div>
+      <div className="fixed top-36 left-4 text-white z-50 font-mono">
+        Rotation: x:{cameraRotation.x.toFixed(2)} y:{cameraRotation.y.toFixed(2)} z:{cameraRotation.z.toFixed(2)}
+      </div>
       <Canvas
-        // ref={canvasRef}
-        camera={{ position: [-5.2, -8, -0.5] }}
-        // -0.45 -0.2 -0.71
+        camera={{ position: [-0, -12, -0.0],rotation: [1.61, 0, -1.40] }}
         gl={{
           alpha: true,
         }}
@@ -513,8 +577,14 @@ export const Scene = ({ param }: { param: React.RefObject<number> }) => {
           gl.setClearColor("#101010", 1);
         }}
       >
+        <Stats className="stats" />
         <ambientLight intensity={0.5} />
-        <CustomGeometryParticles count={20000} />
+        <CustomGeometryParticles
+          count={20000}
+          setFrameCounter={setFrameCounter}
+          setCameraPosition={setCameraPosition}
+          setCameraRotation={setCameraRotation}
+        />
         <EffectComposer>
           <Bloom
             intensity={0.1}
@@ -523,13 +593,12 @@ export const Scene = ({ param }: { param: React.RefObject<number> }) => {
             mipmapBlur
           />
         </EffectComposer>
-        <OrbitControls
-          enableZoom={false}
-          enablePan={false}
-          enableRotate={true}
-        />
+        {/* <OrbitControls
+          // enableZoom={false}
+          // enablePan={false}
+          // enableRotate={false}
+        /> */}
         <ChangeCameraPosition param={param} />
-        {/* <axesHelper args={[1]} /> */}
       </Canvas>
     </div>
   );

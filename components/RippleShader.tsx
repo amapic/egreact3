@@ -37,7 +37,7 @@ const RippleShaderMaterial = () => {
         uWaveLifetime: { value: WAVE_LIFETIME },
         uWaveSpread: { value: WAVE_SPREAD },
         uResolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
-        uBaseRadius: { value: 0.4 },      // Rayon du cercle central
+        uBaseRadius: { value: 0.25 },      // Rayon du cercle central
         uHaloStep: { value: 0.5 },       // Pas de dégradé du halo (plus petit = plus doux)
       },
       vertexShader: `
@@ -103,11 +103,11 @@ const RippleShaderMaterial = () => {
           }
 
           // Halo noir extérieur qui écrase progressivement les couleurs
-          float haloIntensity2 = smoothstep(uBaseRadius - uHaloStep, uBaseRadius + uHaloStep, baseDist);
-          vec3 blackColor = vec3(16/255, 16/255, 16/255);
+          float haloIntensity2 = smoothstep(uBaseRadius - 0.1, uBaseRadius + 0.1, baseDist);
+          vec3 backgroundColor = vec3(16.0/255.0, 16.0/255.0, 16.0/255.0);
           
           // Mélange final
-          color = mix(baseColor + waveColor, blackColor, pow(haloIntensity2, 2.0));
+          color = mix(baseColor + waveColor, backgroundColor, pow(haloIntensity2, 2.0));
           
           gl_FragColor = vec4(color, 1.0);
         }
