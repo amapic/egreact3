@@ -14,12 +14,17 @@ import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import React from "react";
 
 extend({ Bloom });
-const CustomGeometryParticles = (props) => {
-  const { count } = props;
+const CustomGeometryParticles = (props: {
+  count: number;
+  caca: (value: boolean) => void;
+}) => {
+  const { count, caca } = props;
+  const frameCountRef = useRef(0);
   const points = useRef();
   const referencePoints = useRef(); // Points de référence non affichés
   const sphereRefs = useRef([]);
   const lastResetTime = useRef(0);
+
   const particleTimesteps = useRef(null);
   const [uniforms] = useState({
     uTime: { value: 0 },
@@ -149,6 +154,13 @@ const CustomGeometryParticles = (props) => {
     const { clock, camera, mouse } = state;
     const currentTime = clock.elapsedTime;
     uniforms.uTime.value = currentTime;
+    console.log(camera.position.x, camera.position.y, camera.position.z);
+    console.log(frameCountRef.current);
+    console.log(camera.rotation.x, camera.rotation.y, camera.rotation.z);
+    frameCountRef.current++;
+    // cameraPositionRef.current.x = camera.position.x;
+    // cameraPositionRef.current.y = camera.position.y;
+    // cameraPositionRef.current.z = camera.position.z;
 
     // console.log(camera.position.x, camera.position.y, camera.position.z);
 
@@ -167,18 +179,22 @@ const CustomGeometryParticles = (props) => {
     let normalTimestep = 0.1;
     let leaderTimestep = 0.1; // Timestep plus élevé pour les leaders
     // Une particule sur 1000 sera un leader
-    const P = new THREE.Vector3(
-      mousePos.current.x * 2.0 - 1.0,
-      mousePos.current.y * 2.0 - 1.0,
-      0.0
-    );
+    // const P = new THREE.Vector3(
+    //   mousePos.current.x * 2.0 - 1.0,
+    //   mousePos.current.y * 2.0 - 1.0,
+    //   0.0
+    // );
 
     // Direction de la caméra (normalisée)
-    const D = new THREE.Vector3();
-    camera.getWorldDirection(D);
-    D.normalize();
+    // const D = new THREE.Vector3();
+    // camera.getWorldDirection(D);
+    // D.normalize();
 
-    if (currentTime > 1) {
+    if (frameCountRef.current == 100) {
+      // alert("rr")
+      caca(true);
+    }
+    if (frameCountRef.current > 100) {
       normalTimestep = 0.001;
       leaderTimestep = 0.001;
     }
@@ -188,14 +204,14 @@ const CustomGeometryParticles = (props) => {
     const returnSpeed = 0.5;
 
     // Setup raycaster
-    const planeNormal = new THREE.Vector3(0, 0, 1);
-    const planeConstant = 0;
-    const plane = new THREE.Plane(planeNormal, planeConstant);
-    const raycaster = new THREE.Raycaster();
-    const mousePosition = new THREE.Vector3();
+    // const planeNormal = new THREE.Vector3(0, 0, 1);
+    // const planeConstant = 0;
+    // const plane = new THREE.Plane(planeNormal, planeConstant);
+    // const raycaster = new THREE.Raycaster();
+    // const mousePosition = new THREE.Vector3();
 
-    raycaster.setFromCamera(mouse, camera);
-    raycaster.ray.intersectPlane(plane, mousePosition);
+    // raycaster.setFromCamera(mouse, camera);
+    // raycaster.ray.intersectPlane(plane, mousePosition);
     for (let i = 0; i < count; i++) {
       const i3 = i * 3;
 
@@ -217,9 +233,9 @@ const CustomGeometryParticles = (props) => {
       );
 
       // Calcul de la distance point-droite
-      const AP = pos.clone().sub(P);
-      const projection = P.clone().add(D.clone().multiplyScalar(AP.dot(D)));
-      const distance = pos.distanceTo(projection);
+      // const AP = pos.clone().sub(P);
+      // const projection = P.clone().add(D.clone().multiplyScalar(AP.dot(D)));
+      // const distance = pos.distanceTo(projection);
 
       // console.log("Distance à la droite:", distance);
       // console.log("Position particule:", pos);
@@ -228,11 +244,11 @@ const CustomGeometryParticles = (props) => {
       // console.log("Point projeté:", projection);
 
       // Direction vers l'extérieur (depuis l'origine vers le point)
-      const outwardDir = pos.clone().normalize();
+      // const outwardDir = pos.clone().normalize();
 
       // Effet de répulsion basé sur la distance
-      const strength = Math.max(0.1 / (1.0 + distance * distance), 0.01);
-      const repulsion = outwardDir.multiplyScalar(strength * 0.5);
+      // const strength = Math.max(0.1 / (1.0 + distance * distance), 0.01);
+      // const repulsion = outwardDir.multiplyScalar(strength * 0.5);
 
       // Appliquer la répulsion
       // if (distance < 0.5) { // Limite la zone d'effet
@@ -253,68 +269,69 @@ const CustomGeometryParticles = (props) => {
       // const isLeader = i % leaderFrequency === 0;
       // const timestep = isLeader ? leaderTimestep : particleTimesteps.current[i];
 
-      const refPos = {
-        x: referencePoints.current.geometry.attributes.position.array[i3],
-        y: referencePoints.current.geometry.attributes.position.array[i3 + 1],
-        z: referencePoints.current.geometry.attributes.position.array[i3 + 2],
-      };
+      // const refPos = {
+      //   x: referencePoints.current.geometry.attributes.position.array[i3],
+      //   y: referencePoints.current.geometry.attributes.position.array[i3 + 1],
+      //   z: referencePoints.current.geometry.attributes.position.array[i3 + 2],
+      // };
 
       // Équations de Halvorsen avec le timestep variable
-      const dx = refPos.y * timestep;
-      const dy = refPos.z * timestep;
+      const dx = pos.y * timestep;
+      const dy = pos.z * timestep;
       const dz =
-        (-a * refPos.x - b * refPos.y - refPos.z + d * Math.pow(refPos.x, 3)) *
-        timestep;
+        (-a * pos.x - b * pos.y - pos.z + d * Math.pow(pos.x, 3)) * timestep;
 
       // Mise à jour des positions de référence
-      referencePoints.current.geometry.attributes.position.array[i3] += dx;
-      referencePoints.current.geometry.attributes.position.array[i3 + 1] += dy;
-      referencePoints.current.geometry.attributes.position.array[i3 + 2] += dz;
+      // referencePoints.current.geometry.attributes.position.array[i3] += dx;
+      // referencePoints.current.geometry.attributes.position.array[i3 + 1] += dy;
+      // referencePoints.current.geometry.attributes.position.array[i3 + 2] += dz;
 
       // Calculer le facteur de mélange avec la vitesse de retour
-      const timeSinceInteraction =
-        currentTime - lastInteractionTimes.current[i];
-      const t = Math.max(0, Math.min(1, timeSinceInteraction * returnSpeed));
-      const mixFactor = t * t * t; // Garde la progression cubique pour la douceur
+      // const timeSinceInteraction =
+      // currentTime - lastInteractionTimes.current[i];
+      // const t = Math.max(0, Math.min(1, timeSinceInteraction * returnSpeed));
+      // const mixFactor = t * t * t; // Garde la progression cubique pour la douceur
 
-      if (distance < 0.0) {
-        // Limite la zone d'effet
-        // points.current.geometry.attributes.position.array[i3] += repulsion.x;
-        // points.current.geometry.attributes.position.array[i3 + 1] += repulsion.y;
-        // points.current.geometry.attributes.position.array[i3 + 2] += repulsion.z;
-        // Mettre à jour le temps d'interaction pour le retour progressif
-        // lastInteractionTimes.current[i] = currentTime;
-        // if ( 1 == 0) {
-        //   // Calculer la distance à l'origine
-        //   const distToOrigin = Math.sqrt(pos.x * pos.x + pos.y * pos.y + pos.z * pos.z);
-        //   // Direction depuis l'origine vers la particule (normalisée)
-        //   const dirFromOrigin = {
-        //     x: distToOrigin > 0 ? pos.x / distToOrigin : 0,
-        //     y: distToOrigin > 0 ? pos.y / distToOrigin : 0,
-        //     z: distToOrigin > 0 ? pos.z / distToOrigin : 0
-        //   };
-        //   // Position avec effet de dilatation radiale
-        //   const dilatedPos = {
-        //     x: pos.x + dirFromOrigin.x * dilation,
-        //     y: pos.y + dirFromOrigin.y * dilation,
-        //     z: pos.z + dirFromOrigin.z * dilation
-        //   };
-        //   // Mélange entre position dilatée et position de référence
-        //   points.current.geometry.attributes.position.array[i3] =
-        //     dilatedPos.x * (1 - mixFactor) + referencePoints.current.geometry.attributes.position.array[i3] * mixFactor;
-        //   points.current.geometry.attributes.position.array[i3 + 1] =
-        //     dilatedPos.y * (1 - mixFactor) + referencePoints.current.geometry.attributes.position.array[i3 + 1] * mixFactor;
-        //   points.current.geometry.attributes.position.array[i3 + 2] =
-        //     dilatedPos.z * (1 - mixFactor) + referencePoints.current.geometry.attributes.position.array[i3 + 2] * mixFactor;
-      } else {
-        // Si pas d'effet de dilatation, suivre directement la position de référence
-        points.current.geometry.attributes.position.array[i3] =
-          referencePoints.current.geometry.attributes.position.array[i3];
-        points.current.geometry.attributes.position.array[i3 + 1] =
-          referencePoints.current.geometry.attributes.position.array[i3 + 1];
-        points.current.geometry.attributes.position.array[i3 + 2] =
-          referencePoints.current.geometry.attributes.position.array[i3 + 2];
-      }
+      // if (distance < 0.0) {
+      // Limite la zone d'effet
+      // points.current.geometry.attributes.position.array[i3] += repulsion.x;
+      // points.current.geometry.attributes.position.array[i3 + 1] += repulsion.y;
+      // points.current.geometry.attributes.position.array[i3 + 2] += repulsion.z;
+      // Mettre à jour le temps d'interaction pour le retour progressif
+      // lastInteractionTimes.current[i] = currentTime;
+      // if ( 1 == 0) {
+      //   // Calculer la distance à l'origine
+      //   const distToOrigin = Math.sqrt(pos.x * pos.x + pos.y * pos.y + pos.z * pos.z);
+      //   // Direction depuis l'origine vers la particule (normalisée)
+      //   const dirFromOrigin = {
+      //     x: distToOrigin > 0 ? pos.x / distToOrigin : 0,
+      //     y: distToOrigin > 0 ? pos.y / distToOrigin : 0,
+      //     z: distToOrigin > 0 ? pos.z / distToOrigin : 0
+      //   };
+      //   // Position avec effet de dilatation radiale
+      //   const dilatedPos = {
+      //     x: pos.x + dirFromOrigin.x * dilation,
+      //     y: pos.y + dirFromOrigin.y * dilation,
+      //     z: pos.z + dirFromOrigin.z * dilation
+      //   };
+      //   // Mélange entre position dilatée et position de référence
+      //   points.current.geometry.attributes.position.array[i3] =
+      //     dilatedPos.x * (1 - mixFactor) + referencePoints.current.geometry.attributes.position.array[i3] * mixFactor;
+      //   points.current.geometry.attributes.position.array[i3 + 1] =
+      //     dilatedPos.y * (1 - mixFactor) + referencePoints.current.geometry.attributes.position.array[i3 + 1] * mixFactor;
+      //   points.current.geometry.attributes.position.array[i3 + 2] =
+      //     dilatedPos.z * (1 - mixFactor) + referencePoints.current.geometry.attributes.position.array[i3 + 2] * mixFactor;
+      // } else {
+      // Si pas d'effet de dilatation, suivre directement la position de référence
+      points.current.geometry.attributes.position.array[i3] += dx;
+      // referencePoints.current.geometry.attributes.position.array[i3];
+      points.current.geometry.attributes.position.array[i3 + 1] += dy;
+      // referencePoints.current.geometry.attributes.position.array[i3 + 1];
+
+      points.current.geometry.attributes.position.array[i3 + 2] += dz;
+      // referencePoints.current.geometry.attributes.position.array[i3 + 2];
+
+      // }
     }
 
     // Mise à jour des positions des sphères leaders
@@ -416,16 +433,16 @@ const ChangeCameraPosition = ({
   const { camera } = useThree();
 
   const change1 = () => {
-    camera.position.set(0.45, -0.2, -0.71);
+    // camera.position.set(0.45, -0.2, -0.71);
   };
 
   const change2 = () => {
-    camera.position.set(-5.2, -8, -0.5);
+    // camera.position.set(-5.2, -8, -0.5);
   };
 
   const change3 = () => {
     const element = document.getElementById("interstitial");
-    if (!element) return;  // Protection contre element null
+    if (!element) return; // Protection contre element null
 
     if (window.scrollY - element.offsetTop > 0) {
       camera.position.set(
@@ -495,7 +512,13 @@ const ChangeCameraPosition = ({
   return null;
 };
 
-export const Scene = ({ param }: { param: React.RefObject<number> }) => {
+export const Scene = ({
+  param,
+  caca,
+}: {
+  param: React.RefObject<number>;
+  caca: (value: boolean) => void;
+}) => {
   return (
     <div
       id="screen1"
@@ -504,7 +527,11 @@ export const Scene = ({ param }: { param: React.RefObject<number> }) => {
     >
       <Canvas
         // ref={canvasRef}
-        camera={{ position: [-5.2, -8, -0.5] }}
+        camera={{
+          position: [-0.43, -8.56, -0.09],
+          rotation: [1.58, -0.05, 1.79],
+        }}
+        // position: [-5.2, -8, -0.5] }
         // -0.45 -0.2 -0.71
         gl={{
           alpha: true,
@@ -514,7 +541,7 @@ export const Scene = ({ param }: { param: React.RefObject<number> }) => {
         }}
       >
         <ambientLight intensity={0.5} />
-        <CustomGeometryParticles count={10000} />
+        <CustomGeometryParticles caca={caca} count={10000} />
         <EffectComposer>
           <Bloom
             intensity={0.1}
@@ -523,11 +550,11 @@ export const Scene = ({ param }: { param: React.RefObject<number> }) => {
             mipmapBlur
           />
         </EffectComposer>
-        <OrbitControls
-          enableZoom={false}
-          enablePan={false}
-          enableRotate={true}
-        />
+        {/* <OrbitControls
+          // enableZoom={false}
+          // enablePan={false}
+          // enableRotate={true}
+        /> */}
         <ChangeCameraPosition param={param} />
         {/* <axesHelper args={[1]} /> */}
       </Canvas>

@@ -210,8 +210,9 @@ const Screen2 = () => {
     <div
       ref={containerRef}
       id="screen2"
-      className="min-h-screen bg-[rgb(16,16,16)] text-white overflow-hidden z-40"
+      className="relative min-h-screen  text-white overflow-hidden z-40"
     >
+      <div className="absolute top-0 left-0 w-full h-full bg-[rgb(16,16,16)]">
       <h1 className="ml-8 text-3xl xl:text-5xl mt-32 mb-24 bg-gradient-to-b from-gray-900 to-white bg-clip-text text-transparent">
         360° SERVICES
       </h1>
@@ -256,6 +257,7 @@ const Screen2 = () => {
           <div className="md:text-md xl:text-xl">OUR SERVICES</div>
           <div className="md:text-md xl:text-xl">OPEN</div>
         </div>
+      </div>
       </div>
     </div>
   );
