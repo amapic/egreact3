@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 
-export default function Interstitial({ changeParam }: { changeParam: (param: number) => void }) {
+export default function Interstitial() {
   const [isGsapReady, setIsGsapReady] = useState(false);
   const gsapModules = useRef<any>({});
 
@@ -19,14 +19,6 @@ export default function Interstitial({ changeParam }: { changeParam: (param: num
       setIsGsapReady(true);
     });
   }, []);
-
-  useEffect(() => {
-    if (ref.current) {
-      // changeParam(
-      //   (window.scrollY - ref.current?.offsetTop) / (3 * window.innerHeight)
-      // );
-    }
-  }, [isGsapReady]);
 
   return (
     <div

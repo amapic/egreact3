@@ -9,6 +9,7 @@ import RippleShader from "@/components/RippleShader";
 import Interstitial from "@/components/Interstitial";
 
 import {useRef, useState} from "react"
+import { WaitingScreen } from "@/components/waitingScreen";
 const prompt = Prompt({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
@@ -16,34 +17,26 @@ const prompt = Prompt({
 });
 
 function App() {
-  const paramScene = useRef<number>(0);
-  const [sceneLoaded, setSceneLoaded] = useState(false);
+   const paramScene = useRef<number>(0);     
+  const [sceneLoaded, setSceneLoaded] = useState(true);
 
-  function changeParam(param: number) {
-    paramScene.current = param;
-  }
+  
 
   return (
     <div className={`content ${prompt.className}`}>
       
-      {!sceneLoaded && (
-        <div className="fixed top-0 left-0 w-full h-full bg-black z-30">
-          <div className="flex flex-col items-center justify-center h-full">
-            <h1 className="text-white text-4xl font-bold">Loading...</h1>
-            <div className="w-10 h-10 bg-white rounded-full"></div>
-          </div>
-        </div>
-      )}
-      <Scene param={paramScene} caca={setSceneLoaded} />
+      {/* {!sceneLoaded && <WaitingScreen/>} */}
+      {/* <Scene param={paramScene} caca={setSceneLoaded} /> */}
       {sceneLoaded && (
         <>
           <Menu />
           <Hero />
-          <Screen2 />
-          <Screen3 />
-          <Screen4 />
-          <Screen5 />
-          <Screen6 />
+          {/* <Screen2 /> */}
+          {/* <Screen3 /> */}
+          {/* <Interstitial /> */}
+          {/* <Screen4 /> */}
+          {/* <Screen5 /> */}
+          {/* <Screen6 /> */}
         </>
       )}
     </div>

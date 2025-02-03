@@ -1,5 +1,5 @@
 import type { Config } from "tailwindcss";
-
+import colors from 'tailwindcss/colors'
 export default {
   content: [
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
@@ -14,6 +14,7 @@ export default {
       },
     },
     colors:{
+      ...colors,
       'purple':'rgb(44, 51, 214)',
       'white':'rgb(255, 255, 255)',
       'black':'rgb(0, 0, 0)',
@@ -25,6 +26,7 @@ export default {
       'mint':'rgb(189, 252, 201)',
       'test':'rgb(255, 192, 203)',
       'test2':'rgb(44, 51, 214)',
+      'grey2':'rgb(16, 16, 16)',
     }
   },
   plugins: [],

@@ -37,7 +37,7 @@ const RippleShaderMaterial = () => {
         uWaveLifetime: { value: WAVE_LIFETIME },
         uWaveSpread: { value: WAVE_SPREAD },
         uResolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
-        uBaseRadius: { value: 0.25 },      // Rayon du cercle central
+        uBaseRadius: { value: 0.4 },      // Rayon du cercle central
         uHaloStep: { value: 0.5 },       // Pas de dégradé du halo (plus petit = plus doux)
       },
       vertexShader: `

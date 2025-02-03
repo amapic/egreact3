@@ -191,7 +191,6 @@ const CustomGeometryParticles = (props: {
     // D.normalize();
 
     if (frameCountRef.current == 100) {
-      // alert("rr")
       caca(true);
     }
     if (frameCountRef.current > 100) {
@@ -432,24 +431,62 @@ const ChangeCameraPosition = ({
 }) => {
   const { camera } = useThree();
 
-  const change1 = () => {
-    // camera.position.set(0.45, -0.2, -0.71);
+  const posCamera = useRef("pos1");
+
+  const MiseEnPosition1 = () => {
+    camera.position.set(-0.43, -8.56, -0.09);
+    camera.rotation.set(1.58, -0.05, 1.79);
+    posCamera.current = "pos1";
   };
 
-  const change2 = () => {
-    // camera.position.set(-5.2, -8, -0.5);
-  };
-
-  const change3 = () => {
-    const element = document.getElementById("interstitial");
+  const MiseEnPosition2 = () => {
+    const element = document.getElementById("screen2");
     if (!element) return; // Protection contre element null
 
     if (window.scrollY - element.offsetTop > 0) {
+      camera.rotation.set(1.76, -1.04, 1.79);
+
       camera.position.set(
-        0.45,
-        -0.2,
-        -0.71 - (window.scrollY - element.offsetTop) / (3 * window.innerHeight)
+        -1.513451287958616,
+        -0.8576845145905376,
+        -0.1686306495657644
       );
+      posCamera.current = "pos2";
+      // -(window.scrollY - element.offsetTop) / (3 * window.innerHeight);
+
+      // camera.position.set(1.764931612524174 ,-1.047042362292991, 1.7940590045378362)
+      //  camera.rotation.set(-1.513451287958616 ,-0.8576845145905376 ,-0.1686306495657644)
+    }
+
+    // camera.position.set(-0.43, -8.56, -0.09)
+    // camera.rotation.set(1.58, -0.05, 1.79)
+  };
+
+  const GlissementCamera = () => {
+    const element = document.getElementById("interstitial");
+    if (!element) return; // Protection contre element null
+
+    // if (window.scrollY - element.offsetTop > 0) {
+    //   camera.position.set(
+    //     0.45,
+    //     -0.2,
+    //     -0.71 - (window.scrollY - element.offsetTop) / (3 * window.innerHeight)
+    //   );
+    // }
+
+    if (window.scrollY - element.offsetTop > 0) {
+      camera.rotation.set(1.76, -1.04, 1.79);
+
+      camera.position.set(
+        -1.513451287958616,
+        -0.8576845145905376,
+        -0.1686306495657644 -
+          (window.scrollY - element.offsetTop) / (3 * window.innerHeight)
+      );
+      // ;
+
+      // camera.position.set(1.764931612524174 ,-1.047042362292991, 1.7940590045378362)
+      //  camera.rotation.set(-1.513451287958616 ,-0.8576845145905376 ,-0.1686306495657644)
     }
   };
 
@@ -460,9 +497,15 @@ const ChangeCameraPosition = ({
       const handleScroll = () => {
         if (!ticking) {
           window.requestAnimationFrame(() => {
-            change3();
+            // interference entre les deux fonctions
+            if (posCamera.current === "pos1") {
+              
+              MiseEnPosition2();
+            }
+            GlissementCamera();
             ticking = false;
           });
+
           ticking = true;
         }
       };
@@ -483,12 +526,13 @@ const ChangeCameraPosition = ({
 
         gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
+        //marche pas se déclenche qd screen 2 pas créé
         ScrollTrigger.create({
           trigger: document.getElementById("screen2"),
-          start: "bottom bottom",
-          // markers: true,
+          start: "top 95%",
+          end: "bottom 95%",
           onEnter: () => {
-            change1();
+            // change1();
           },
         });
 
@@ -500,7 +544,7 @@ const ChangeCameraPosition = ({
             // caca2()
           },
           onEnterBack: () => {
-            change2();
+            MiseEnPosition1();
           },
         });
       };
@@ -526,7 +570,6 @@ export const Scene = ({
       style={{ width: "100%", height: "100vh" }}
     >
       <Canvas
-        // ref={canvasRef}
         camera={{
           position: [-0.43, -8.56, -0.09],
           rotation: [1.58, -0.05, 1.79],

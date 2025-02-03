@@ -39,8 +39,18 @@ const MenuItem = ({ text, id }: { text: string, id: string }) => {
     };
   }, [id]);
 
+  const scrollToSection = () => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
+  };
+
   return (
-    <div className="flex items-center cursor-pointer ">
+    <div data-subMenu className="flex items-center cursor-pointer" onClick={scrollToSection}>
       <div
         ref={textRef}
         data-text
@@ -49,15 +59,8 @@ const MenuItem = ({ text, id }: { text: string, id: string }) => {
         {text}
       </div>
       <div
-        onClick={() => {
-          gsap.to(window, {
-            scrollTo: { y: getDistanceFromTop(element as HTMLElement) },
-            duration: 2,
-            ease: "power3.out",
-          });
-        }}
         ref={lineRef}
-        className={`hover:bg-white h-[3px] ${isVisible ? 'bg-white' : 'bg-[rgb(50,50,50)]'} w-[30px] z-10`}
+        className={`hover:bg-white h-[3px] ${isVisible ? 'bg-white' : 'bg-[rgb(50,50,50)]'} w-[24px] z-10`}
       />
     </div>
   );
@@ -77,23 +80,40 @@ const Menu = () => {
   const menuContainerRef = useRef<HTMLDivElement>(null);
   const helloRef = useRef<HTMLButtonElement>(null);
   const bOneRef = useRef<HTMLDivElement>(null);
+  const barreContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const container = menuContainerRef.current;
     const items = Array.from(container?.children || []);
+    const barreContainer = barreContainerRef.current;
 
     const handleMouseEnter = () => {
       if (isAnimating) return;
       isAnimating = true;
 
+      const timeline = gsap.timeline();
+
       const textElements = Array.from(
         container?.querySelectorAll("[data-text]") || []
       );
 
+      const subMenuElements = Array.from(
+        container?.querySelectorAll("[data-subMenu]") || []
+      ).reverse();
+
+
       gsap.to(items, {
         marginBottom: 15,
         duration: 0.3,
-        stagger: 0.05,
+        stagger: 0.2,
+        ease: "power2.out",
+      });
+
+      gsap.to(subMenuElements, {
+        y:15,
+        // marginBottom: 15,
+        duration: 0.3,
+        stagger: 0.2,
         ease: "power2.out",
       });
 
@@ -101,7 +121,7 @@ const Menu = () => {
         opacity: 1,
         x: 0,
         duration: 0.3,
-        stagger: 0.05,
+        stagger: 0.2,
         ease: "power2.out",
       });
     };
@@ -111,9 +131,29 @@ const Menu = () => {
         container?.querySelectorAll("[data-text]") || []
       );
 
+      const subMenuElements = Array.from(
+        container?.querySelectorAll("[data-subMenu]") || []
+      );
+
+      gsap.to(subMenuElements, {
+        y:0,
+        // marginBottom: 15,
+        duration: 0.3,
+        stagger: 0.2,
+        ease: "power2.out",
+      });
+
       gsap.to(items, {
         marginBottom: 1,
         duration: 0.3,
+        ease: "power2.out",
+      });
+
+      gsap.to(items, {
+        y:0,
+        // marginBottom: 15,
+        duration: 0.3,
+        stagger: 0.2,
         ease: "power2.out",
       });
 
@@ -183,8 +223,11 @@ const Menu = () => {
 
   return (
     <>
-      <div className="fixed h-27 w-screen bg-[rgb(16,16,16)] text-white z-20"></div>
-      <div className="fixed top-27 h-2 w-screen bg-gradient-to-b from-[rgb(16,16,16)] to-transparent z-20"></div>
+      <div className="fixed h-27 w-screen flex-row items-center justify-between text-white z-20">
+        <div className="bg-[rgb(16,16,16)] h-1/2 w-full"></div>
+        <div className="bg-gradient-to-b from-[rgb(16,16,16)] to-transparent h-1/2 w-full"></div>
+      </div>
+      {/* <div className="fixed top-27 h-2 w-screen bg-gradient-to-b from-[rgb(16,16,16)] to-transparent z-20"></div> */}
 
       <div className="flex justify-between items-center">
         <div
@@ -206,7 +249,7 @@ const Menu = () => {
       >
         <div className="">
           {menuItems.map((item, index) => (
-            <MenuItem key={index} text={item[0]} id={item[1]} />
+            <MenuItem key={index} text={item[0]} id={item[1]}  />
           ))}
         </div>
       </div>
