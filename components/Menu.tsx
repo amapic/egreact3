@@ -90,6 +90,7 @@ const Menu = () => {
     const handleMouseEnter = () => {
       if (isAnimating) return;
       isAnimating = true;
+      const stagger = 0.1;
 
       const timeline = gsap.timeline();
 
@@ -101,32 +102,39 @@ const Menu = () => {
         container?.querySelectorAll("[data-subMenu]") || []
       ).reverse();
 
+      timeline.to(subMenuElements, {
+        y: (index) => 50 - (index * 10), // 15px pour le premier, 20px pour le second, etc.
+        duration: 0.3,
+        // stagger: stagger,
+        ease: "power2.out",
+      });
 
-      gsap.to(items, {
+
+
+      timeline.to(items, {
         marginBottom: 15,
         duration: 0.3,
-        stagger: 0.2,
+        stagger: stagger,
         ease: "power2.out",
-      });
+      },">");
 
-      gsap.to(subMenuElements, {
-        y:15,
-        // marginBottom: 15,
-        duration: 0.3,
-        stagger: 0.2,
-        ease: "power2.out",
-      });
 
-      gsap.to(textElements, {
+
+      timeline.to(textElements, {
         opacity: 1,
         x: 0,
         duration: 0.3,
-        stagger: 0.2,
+        stagger: stagger,
         ease: "power2.out",
-      });
+
+
+      },">");
     };
 
     const handleMouseLeave = () => {
+
+      const timeline = gsap.timeline();
+
       const textElements = Array.from(
         container?.querySelectorAll("[data-text]") || []
       );
@@ -135,29 +143,24 @@ const Menu = () => {
         container?.querySelectorAll("[data-subMenu]") || []
       );
 
-      gsap.to(subMenuElements, {
-        y:0,
-        // marginBottom: 15,
-        duration: 0.3,
-        stagger: 0.2,
-        ease: "power2.out",
-      });
+ 
 
-      gsap.to(items, {
+
+      timeline.to(subMenuElements, {
+        y: (index) => 0, // 15px pour le premier, 20px pour le second, etc.
+        duration: 0.3,
+        // stagger: stagger,
+        ease: "power2.out",
+      },">");
+
+      timeline.to(items, {
         marginBottom: 1,
         duration: 0.3,
         ease: "power2.out",
-      });
+      },">");
 
-      gsap.to(items, {
-        y:0,
-        // marginBottom: 15,
-        duration: 0.3,
-        stagger: 0.2,
-        ease: "power2.out",
-      });
 
-      gsap.to(textElements, {
+      timeline.to(textElements, {
         opacity: 0,
         x: -10,
         duration: 0.3,

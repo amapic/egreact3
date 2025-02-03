@@ -26,7 +26,7 @@ function App() {
     <div className={`content ${prompt.className}`}>
       
       {/* {!sceneLoaded && <WaitingScreen/>} */}
-      {/* <Scene param={paramScene} caca={setSceneLoaded} /> */}
+      <Scene param={paramScene} caca={setSceneLoaded} />
       {sceneLoaded && (
         <>
           <Menu />
