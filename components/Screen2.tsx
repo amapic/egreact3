@@ -23,11 +23,20 @@ const Screen2 = () => {
   const sectionsRef = useRef<HTMLDivElement[]>([]);
   const numbersRef = useRef<HTMLDivElement[]>([]);
   const bottomBarRef = useRef<HTMLDivElement>(null);
-  // Ajout d'une ref pour suivre le dernier déclenchement
   const lastTriggerTime = useRef<number>(0);
+  const TRIGGER_COOLDOWN = 1000; // 1 seconde en millisecondes
 
   const AnimationClipCreator = useRef(false);
   // const [isRippleActive, setIsRippleActive] = useState(false);
+
+  const canTrigger = () => {
+    const now = Date.now();
+    if (now - lastTriggerTime.current >= TRIGGER_COOLDOWN) {
+      lastTriggerTime.current = now;
+      return true;
+    }
+    return false;
+  };
 
   useEffect(() => {
     Promise.all([
@@ -83,6 +92,7 @@ const Screen2 = () => {
       animation: tl,
       // markers: true,
       onEnter: () => {
+        if (!canTrigger()) return;
         const element = document.getElementById("screen2");
         if (!element) return;
 
@@ -140,6 +150,7 @@ const Screen2 = () => {
       end: "top 5%",
       // markers: true,
       onEnterBack: () => {
+        if (!canTrigger()) return;
         document.body.style.overflow = "hidden";
         gsap.to(window, {
           scrollTo: {
@@ -161,6 +172,7 @@ const Screen2 = () => {
       end: "bottom 95%",
       // markers: true,
       onEnter: () => {
+        if (!canTrigger()) return;
         // Vérifier si suffisamment de temps s'est écoulé depuis le dernier déclenchement
         document.body.style.overflow = "hidden";
         gsap.to(window, {
@@ -182,9 +194,8 @@ const Screen2 = () => {
       end: "bottom 95%",
       // markers: true,
       onEnter: () => {
+        if (!canTrigger()) return;
         // Mettre à jour le timestamp du dernier déclenchement
-        lastTriggerTime.current = Date.now();
-        
         gsap.to(window, {
           scrollTo: {
             y: getDistanceFromTop(element as HTMLElement),

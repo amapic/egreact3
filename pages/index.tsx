@@ -5,7 +5,7 @@ import Hero from "@/components/Hero";
 import { Scene } from "@/components/Scene";
 import { Prompt } from "next/font/google";
 import Screen6 from "@/components/Screen6";
-import RippleShader from "@/components/RippleShader";
+// import RippleShader from "@/components/RippleShader";
 import Interstitial from "@/components/Interstitial";
 
 import {useRef, useState} from "react"
@@ -18,25 +18,26 @@ const prompt = Prompt({
 
 function App() {
    const paramScene = useRef<number>(0);     
-  const [sceneLoaded, setSceneLoaded] = useState(true);
+  const [sceneLoaded, setSceneLoaded] = useState(false);
 
   
 
   return (
     <div className={`content ${prompt.className}`}>
-      
-      {/* {!sceneLoaded && <WaitingScreen/>} */}
+      {/* <WaitingScreen/> */}
+      {!sceneLoaded && <WaitingScreen/>}
       <Scene param={paramScene} caca={setSceneLoaded} />
       {sceneLoaded && (
         <>
           <Menu />
           <Hero />
-          {/* <Screen2 /> */}
-          {/* <Screen3 /> */}
-          {/* <Interstitial /> */}
-          {/* <Screen4 /> */}
-          {/* <Screen5 /> */}
-          {/* <Screen6 /> */}
+          <Screen2 /> 
+          <Screen3 />   
+           <Interstitial />
+           <Screen4 />
+           <Screen5 /> 
+           <Screen6 /> 
+         
         </>
       )}
     </div>

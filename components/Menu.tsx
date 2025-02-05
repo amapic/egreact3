@@ -76,6 +76,7 @@ const Menu = () => {
     ["Clients & Partners","screen6"],
     ["Contact","screen6"],
   ];
+  
 
   const menuContainerRef = useRef<HTMLDivElement>(null);
   const helloRef = useRef<HTMLButtonElement>(null);
@@ -87,38 +88,42 @@ const Menu = () => {
     const items = Array.from(container?.children || []);
     const barreContainer = barreContainerRef.current;
 
+    // Créer une référence pour stocker l'animation en cours
+    let currentAnimation: gsap.Timeline | null = null;
+
     const handleMouseEnter = () => {
       if (isAnimating) return;
       isAnimating = true;
-      const stagger = 0.1;
+      
+      // Tuer l'animation précédente si elle existe
+      if (currentAnimation) {
+        currentAnimation.kill();
+      }
 
       const timeline = gsap.timeline();
+      currentAnimation = timeline;
+      const stagger = 0.1;
 
       const textElements = Array.from(
         container?.querySelectorAll("[data-text]") || []
       );
 
       const subMenuElements = Array.from(
-        container?.querySelectorAll("[data-subMenu]") || []
+        container?.querySelectorAll("[data-submenu]") || []
       ).reverse();
 
       timeline.to(subMenuElements, {
-        y: (index) => 50 - (index * 10), // 15px pour le premier, 20px pour le second, etc.
+        y: (index) => 50 - (index * 10),
         duration: 0.3,
-        // stagger: stagger,
         ease: "power2.out",
       });
-
-
 
       timeline.to(items, {
         marginBottom: 15,
         duration: 0.3,
         stagger: stagger,
         ease: "power2.out",
-      },">");
-
-
+      },"<");
 
       timeline.to(textElements, {
         opacity: 1,
@@ -126,30 +131,29 @@ const Menu = () => {
         duration: 0.3,
         stagger: stagger,
         ease: "power2.out",
-
-
       },">");
     };
 
     const handleMouseLeave = () => {
+      // Tuer l'animation précédente si elle existe
+      if (currentAnimation) {
+        currentAnimation.kill();
+      }
 
       const timeline = gsap.timeline();
+      currentAnimation = timeline;
 
       const textElements = Array.from(
         container?.querySelectorAll("[data-text]") || []
       );
 
       const subMenuElements = Array.from(
-        container?.querySelectorAll("[data-subMenu]") || []
+        container?.querySelectorAll("[data-submenu]") || []
       );
 
- 
-
-
       timeline.to(subMenuElements, {
-        y: (index) => 0, // 15px pour le premier, 20px pour le second, etc.
+        y: 0,
         duration: 0.3,
-        // stagger: stagger,
         ease: "power2.out",
       },">");
 
@@ -158,7 +162,6 @@ const Menu = () => {
         duration: 0.3,
         ease: "power2.out",
       },">");
-
 
       timeline.to(textElements, {
         opacity: 0,
@@ -175,8 +178,12 @@ const Menu = () => {
     container?.addEventListener("mouseleave", handleMouseLeave);
 
     return () => {
-      container?.removeEventListener("mouseover", handleMouseEnter); 
+      container?.removeEventListener("mouseover", handleMouseEnter);
       container?.removeEventListener("mouseleave", handleMouseLeave);
+      // Nettoyer l'animation au démontage
+      if (currentAnimation) {
+        currentAnimation.kill();
+      }
     };
   }, []);
 
@@ -227,18 +234,19 @@ const Menu = () => {
   return (
     <>
       <div className="fixed h-27 w-screen flex-row items-center justify-between text-white z-20">
-        <div className="bg-[rgb(16,16,16)] h-1/2 w-full"></div>
-        <div className="bg-gradient-to-b from-[rgb(16,16,16)] to-transparent h-1/2 w-full"></div>
+        <div className="bg-[rgb(16,16,16)] h-3/4 w-full"></div>
+        <div className="bg-gradient-to-b from-[rgb(16,16,16)] to-transparent h-1/4 w-full"></div>
       </div>
       {/* <div className="fixed top-27 h-2 w-screen bg-gradient-to-b from-[rgb(16,16,16)] to-transparent z-20"></div> */}
 
       <div className="flex justify-between items-center">
         <div
           ref={bOneRef}
-          className="fixed text-white top-8 left-8 font-32 font-['Prompt'] z-20"
+          className="compressed-text fixed text-white top-8 left-8 font-32 font-['Prompt'] z-20"
         >
           B one consulting
         </div>
+
         <button
           ref={helloRef}
           className="font-20 z-20 w-48 h-12 fixed top-9 right-8 border border-purple text-purple rounded-full"

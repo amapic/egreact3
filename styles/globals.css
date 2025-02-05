@@ -152,5 +152,15 @@
   top: 6.75rem;
 }
 
+.compressed-text {
+  /* font-family: 'Prompt', sans-serif; */
+  font-weight: 400;
+  /* letter-spacing: -0.05em; Réduit l'espacement entre les lettres */
+  /* font-stretch: condensed; Compresse les caractères */
+  transform: scaleY(0.6); /* Compresse horizontalement le texte */
+  
+  transform-origin: left center; /* Garde l'alignement à gauche */
+}
+
 
 

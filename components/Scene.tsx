@@ -8,7 +8,7 @@ import {
   useThree,
   AmbientLight,
 } from "@react-three/fiber";
-
+import { lerp, damp } from "three/src/math/MathUtils";
 import * as THREE from "three";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import React from "react";
@@ -23,10 +23,15 @@ const CustomGeometryParticles = (props: {
   const points = useRef();
   const referencePoints = useRef(); // Points de référence non affichés
   const sphereRefs = useRef([]);
-  const lastResetTime = useRef(0);
+  const mouse = useRef({ x: 0, y: 0 });
+  const targetPosition = useRef(new THREE.Vector3());
+  const maxRadius = 0.01; // Rayon maximum de déplacement de la caméra
+
+  const fpsBuffer = useRef<number[]>([]);
+  const lastTime = useRef(performance.now());
 
   const particleTimesteps = useRef(null);
-  const [uniforms] = useState({
+  const uniforms = useRef({
     uTime: { value: 0 },
     uMouse: { value: new THREE.Vector2(0.5, 0.5) },
     uFlash: { value: 0.0 },
@@ -37,7 +42,6 @@ const CustomGeometryParticles = (props: {
   const leaderFrequency = 10000;
   // Tableau pour stocker les temps de dernière interaction pour chaque point
   const lastInteractionTimes = useRef(new Float32Array(count).fill(-1));
-
   const vertexShader = `
     uniform float uTime;
     uniform vec2 uMouse;
@@ -84,42 +88,31 @@ const CustomGeometryParticles = (props: {
     }
   `;
 
-  const mousePos = useRef({ x: 0, y: 0 });
+  
 
-  useEffect(() => {
-    const handleMouseMove = (event: MouseEvent) => {
-      const x = (event.clientX / window.innerWidth) * 2 - 1;
-      const y = -(event.clientY / window.innerHeight) * 2 + 1;
+  useFrame((state) => {
+    // if (isScrolling) return;
 
-      const mouse3D = new THREE.Vector3(x, y, 0.5);
+    // Calcul des FPS
+    const now = performance.now();
+    const delta = now - lastTime.current;
+    const currentFps = 1000 / delta;
 
-      mouse3D.unproject(camera);
-      //console.log("mouse3D", mouse3D);
-      //console.log("camera", camera.position);
-      const dir = mouse3D.sub(camera.position).normalize();
-      // console.log("dir", dir);
-      const distance = -camera.position.z / dir.z;
-      // console.log("distance", distance);
-      const pos = camera.position.clone().add(dir.multiplyScalar(distance));
-      // console.log("pos", pos);
+    fpsBuffer.current.push(currentFps);
+    if (fpsBuffer.current.length > 30) {
+      fpsBuffer.current.shift();
+    }
 
-      mousePos.current = {
-        x: (pos.x + 1) * 0.5,
-        y: (pos.y + 1) * 0.5,
-      };
-      // console.log(x, y);
+    // Moyenne des FPS sur les 30 dernières frames
+    const averageFps =
+      fpsBuffer.current.reduce((a, b) => a + b) / fpsBuffer.current.length;
+    if (frameCountRef.current % 10 === 0) {
+      // Update FPS display every 10 frames
+      console.log(Math.round(averageFps));
+    }
 
-      // Direction dans laquelle regarde la caméra
-      const cameraDirectionLocal = new THREE.Vector3();
-      camera.getWorldDirection(cameraDirectionLocal);
-      // console.log("camera direction", cameraDirectionLocal);
-      cameraDirection.current = cameraDirectionLocal;
-      // camera.curren
-    };
-
-    window.addEventListener("mousemove", handleMouseMove);
-    return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, [camera]);
+    lastTime.current = now;
+  });
 
   // Generate our positions attributes array
   const particlesPosition = useMemo(() => {
@@ -150,25 +143,26 @@ const CustomGeometryParticles = (props: {
     );
   }, [count]);
 
+  const lastUpdate = useRef(0);
+  const targetFPS = 50; // 50 fois par seconde
+  const frameInterval = 1 / targetFPS;
+
   useFrame((state) => {
     const { clock, camera, mouse } = state;
-    const currentTime = clock.elapsedTime;
-    uniforms.uTime.value = currentTime;
-    console.log(camera.position.x, camera.position.y, camera.position.z);
-    console.log(frameCountRef.current);
-    console.log(camera.rotation.x, camera.rotation.y, camera.rotation.z);
-    frameCountRef.current++;
-    // cameraPositionRef.current.x = camera.position.x;
-    // cameraPositionRef.current.y = camera.position.y;
-    // cameraPositionRef.current.z = camera.position.z;
 
-    // console.log(camera.position.x, camera.position.y, camera.position.z);
+    lastUpdate.current = clock.elapsedTime; // Sauvegarder le nouveau timestamp
+
+    const currentTime = clock.elapsedTime;
+    uniforms.current.uTime.value = currentTime;
+
+    // console.log(camera.rotation.x, camera.rotation.y, camera.rotation.z);
+    frameCountRef.current++;
 
     // Déclencher un éclair aléatoirement
     if (Math.random() < 0.005) {
-      uniforms.uFlash.value = 1.0;
+      uniforms.current.uFlash.value = 1.0;
       setTimeout(() => {
-        uniforms.uFlash.value = 0.0;
+        uniforms.current.uFlash.value = 0.0;
       }, 100);
     }
 
@@ -178,17 +172,6 @@ const CustomGeometryParticles = (props: {
     const d = -1;
     let normalTimestep = 0.1;
     let leaderTimestep = 0.1; // Timestep plus élevé pour les leaders
-    // Une particule sur 1000 sera un leader
-    // const P = new THREE.Vector3(
-    //   mousePos.current.x * 2.0 - 1.0,
-    //   mousePos.current.y * 2.0 - 1.0,
-    //   0.0
-    // );
-
-    // Direction de la caméra (normalisée)
-    // const D = new THREE.Vector3();
-    // camera.getWorldDirection(D);
-    // D.normalize();
 
     if (frameCountRef.current == 100) {
       caca(true);
@@ -202,28 +185,11 @@ const CustomGeometryParticles = (props: {
     const dilationRadius = 1.0;
     const returnSpeed = 0.5;
 
-    // Setup raycaster
-    // const planeNormal = new THREE.Vector3(0, 0, 1);
-    // const planeConstant = 0;
-    // const plane = new THREE.Plane(planeNormal, planeConstant);
-    // const raycaster = new THREE.Raycaster();
-    // const mousePosition = new THREE.Vector3();
-
-    // raycaster.setFromCamera(mouse, camera);
-    // raycaster.ray.intersectPlane(plane, mousePosition);
     for (let i = 0; i < count; i++) {
       const i3 = i * 3;
 
-      // Utiliser le timestep spécifique à la particule
       const isLeader = i % leaderFrequency === 0;
-      // const timestep = isLeader ? leaderTimestep : particleTimesteps.current[i];
       const timestep = leaderTimestep;
-      // Position actuelle du point
-      // const pos = {
-      //   x: points.current.geometry.attributes.position.array[i3],
-      //   y: points.current.geometry.attributes.position.array[i3 + 1],
-      //   z: points.current.geometry.attributes.position.array[i3 + 2]
-      // };
 
       const pos = new THREE.Vector3(
         points.current.geometry.attributes.position.array[i3],
@@ -231,127 +197,21 @@ const CustomGeometryParticles = (props: {
         points.current.geometry.attributes.position.array[i3 + 2]
       );
 
-      // Calcul de la distance point-droite
-      // const AP = pos.clone().sub(P);
-      // const projection = P.clone().add(D.clone().multiplyScalar(AP.dot(D)));
-      // const distance = pos.distanceTo(projection);
-
-      // console.log("Distance à la droite:", distance);
-      // console.log("Position particule:", pos);
-      // console.log("Position souris:", P);
-      // console.log("Direction caméra:", D);
-      // console.log("Point projeté:", projection);
-
-      // Direction vers l'extérieur (depuis l'origine vers le point)
-      // const outwardDir = pos.clone().normalize();
-
-      // Effet de répulsion basé sur la distance
-      // const strength = Math.max(0.1 / (1.0 + distance * distance), 0.01);
-      // const repulsion = outwardDir.multiplyScalar(strength * 0.5);
-
-      // Appliquer la répulsion
-      // if (distance < 0.5) { // Limite la zone d'effet
-      //   points.current.geometry.attributes.position.array[i3] += repulsion.x;
-      //   points.current.geometry.attributes.position.array[i3 + 1] += repulsion.y;
-      //   points.current.geometry.attributes.position.array[i3 + 2] += repulsion.z;
-
-      //   // Mettre à jour le temps d'interaction pour le retour progressif
-      //   lastInteractionTimes.current[i] = currentTime;
-      // }
-      // Position de référence
-      // const refPos = {
-      //   x: referencePoints.current.geometry.attributes.position.array[i3],
-      //   y: referencePoints.current.geometry.attributes.position.array[i3 + 1],
-      //   z: referencePoints.current.geometry.attributes.position.array[i3 + 2]
-      // };
-
-      // const isLeader = i % leaderFrequency === 0;
-      // const timestep = isLeader ? leaderTimestep : particleTimesteps.current[i];
-
-      // const refPos = {
-      //   x: referencePoints.current.geometry.attributes.position.array[i3],
-      //   y: referencePoints.current.geometry.attributes.position.array[i3 + 1],
-      //   z: referencePoints.current.geometry.attributes.position.array[i3 + 2],
-      // };
-
       // Équations de Halvorsen avec le timestep variable
       const dx = pos.y * timestep;
       const dy = pos.z * timestep;
       const dz =
         (-a * pos.x - b * pos.y - pos.z + d * Math.pow(pos.x, 3)) * timestep;
 
-      // Mise à jour des positions de référence
-      // referencePoints.current.geometry.attributes.position.array[i3] += dx;
-      // referencePoints.current.geometry.attributes.position.array[i3 + 1] += dy;
-      // referencePoints.current.geometry.attributes.position.array[i3 + 2] += dz;
-
-      // Calculer le facteur de mélange avec la vitesse de retour
-      // const timeSinceInteraction =
-      // currentTime - lastInteractionTimes.current[i];
-      // const t = Math.max(0, Math.min(1, timeSinceInteraction * returnSpeed));
-      // const mixFactor = t * t * t; // Garde la progression cubique pour la douceur
-
-      // if (distance < 0.0) {
-      // Limite la zone d'effet
-      // points.current.geometry.attributes.position.array[i3] += repulsion.x;
-      // points.current.geometry.attributes.position.array[i3 + 1] += repulsion.y;
-      // points.current.geometry.attributes.position.array[i3 + 2] += repulsion.z;
-      // Mettre à jour le temps d'interaction pour le retour progressif
-      // lastInteractionTimes.current[i] = currentTime;
-      // if ( 1 == 0) {
-      //   // Calculer la distance à l'origine
-      //   const distToOrigin = Math.sqrt(pos.x * pos.x + pos.y * pos.y + pos.z * pos.z);
-      //   // Direction depuis l'origine vers la particule (normalisée)
-      //   const dirFromOrigin = {
-      //     x: distToOrigin > 0 ? pos.x / distToOrigin : 0,
-      //     y: distToOrigin > 0 ? pos.y / distToOrigin : 0,
-      //     z: distToOrigin > 0 ? pos.z / distToOrigin : 0
-      //   };
-      //   // Position avec effet de dilatation radiale
-      //   const dilatedPos = {
-      //     x: pos.x + dirFromOrigin.x * dilation,
-      //     y: pos.y + dirFromOrigin.y * dilation,
-      //     z: pos.z + dirFromOrigin.z * dilation
-      //   };
-      //   // Mélange entre position dilatée et position de référence
-      //   points.current.geometry.attributes.position.array[i3] =
-      //     dilatedPos.x * (1 - mixFactor) + referencePoints.current.geometry.attributes.position.array[i3] * mixFactor;
-      //   points.current.geometry.attributes.position.array[i3 + 1] =
-      //     dilatedPos.y * (1 - mixFactor) + referencePoints.current.geometry.attributes.position.array[i3 + 1] * mixFactor;
-      //   points.current.geometry.attributes.position.array[i3 + 2] =
-      //     dilatedPos.z * (1 - mixFactor) + referencePoints.current.geometry.attributes.position.array[i3 + 2] * mixFactor;
-      // } else {
-      // Si pas d'effet de dilatation, suivre directement la position de référence
       points.current.geometry.attributes.position.array[i3] += dx;
-      // referencePoints.current.geometry.attributes.position.array[i3];
       points.current.geometry.attributes.position.array[i3 + 1] += dy;
-      // referencePoints.current.geometry.attributes.position.array[i3 + 1];
 
       points.current.geometry.attributes.position.array[i3 + 2] += dz;
-      // referencePoints.current.geometry.attributes.position.array[i3 + 2];
 
       // }
     }
 
-    // Mise à jour des positions des sphères leaders
-    sphereRefs.current.forEach((sphere, index) => {
-      if (sphere) {
-        sphere.position.set(
-          points.current.geometry.attributes.position.array[
-            index * leaderFrequency * 3
-          ],
-          points.current.geometry.attributes.position.array[
-            index * leaderFrequency * 3 + 1
-          ],
-          points.current.geometry.attributes.position.array[
-            index * leaderFrequency * 3 + 2
-          ]
-        );
-      }
-    });
-
     points.current.geometry.attributes.position.needsUpdate = true;
-    referencePoints.current.geometry.attributes.position.needsUpdate = true;
   });
 
   return (
@@ -376,7 +236,7 @@ const CustomGeometryParticles = (props: {
         <shaderMaterial
           vertexShader={vertexShader}
           fragmentShader={fragmentShader}
-          uniforms={uniforms}
+          uniforms={uniforms.current}
           transparent={true}
           depthWrite={false}
         />
@@ -430,8 +290,56 @@ const ChangeCameraPosition = ({
   param: React.RefObject<number>;
 }) => {
   const { camera } = useThree();
-
   const posCamera = useRef("pos1");
+  const targetZ = useRef(-0.1686306495657644); // Valeur z initiale
+  const mouse = useRef({ x: 0, y: 0 });
+  const targetPosition = useRef(new THREE.Vector3());
+  const maxRadius = 0.01; // Rayon maximum de déplacement de la caméra
+  
+  useFrame(({ camera }) => {
+    // Calculer la position cible de la caméra
+    const theta = mouse.current.x * Math.PI * 2; // Angle horizontal
+
+    const phi = mouse.current.y * Math.PI * 0.5; // Angle vertical
+
+    // Calculer la nouvelle position cible sur une sphère
+    targetPosition.current.x = maxRadius * Math.sin(theta) * Math.cos(phi);
+    targetPosition.current.y = maxRadius * Math.sin(phi);
+    targetPosition.current.z = maxRadius * Math.cos(theta) * Math.cos(phi);
+
+    // Appliquer un lerp à la position de la caméra
+    // camera.position.x = lerp(camera.position.x, targetPosition.current.x, 0.05);
+    // camera.position.y = lerp(camera.position.y, targetPosition.current.y, 0.05);
+    // camera.position.z = lerp(camera.position.z, targetPosition.current.z, 0.05);
+
+    // Faire regarder la caméra vers l'origine
+    // camera.lookAt(0, 0, 0);
+  });
+
+  useEffect(() => {
+    const handleMouseMove = (event: MouseEvent) => {
+      // Normaliser les coordonnées de la souris entre -0.5 et 0.5
+      // mouse.current.x = (event.clientX / window.innerWidth - 0.5);
+      // mouse.current.y = (event.clientY / window.innerHeight - 0.5);
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => window.removeEventListener("mousemove", handleMouseMove);
+  }, []);
+  
+  
+  useFrame(() => {
+    // Applique le lissage à chaque frame
+    if (posCamera.current === "pos2") {
+      const smoothFactor = 0.1;
+      const newZ = lerp(camera.position.z, targetZ.current, smoothFactor);
+      camera.position.z = newZ;
+    }
+  });
+  // Fonction d'interpolation linéaire (lerp)
+  const lerp = (start: number, end: number, factor: number) => {
+    return start + (end - start) * factor;
+  };
 
   const MiseEnPosition1 = () => {
     camera.position.set(-0.43, -8.56, -0.09);
@@ -457,36 +365,28 @@ const ChangeCameraPosition = ({
       // camera.position.set(1.764931612524174 ,-1.047042362292991, 1.7940590045378362)
       //  camera.rotation.set(-1.513451287958616 ,-0.8576845145905376 ,-0.1686306495657644)
     }
-
-    // camera.position.set(-0.43, -8.56, -0.09)
-    // camera.rotation.set(1.58, -0.05, 1.79)
   };
 
   const GlissementCamera = () => {
-    const element = document.getElementById("interstitial");
-    if (!element) return; // Protection contre element null
-
-    // if (window.scrollY - element.offsetTop > 0) {
-    //   camera.position.set(
-    //     0.45,
-    //     -0.2,
-    //     -0.71 - (window.scrollY - element.offsetTop) / (3 * window.innerHeight)
-    //   );
-    // }
+    const element = document.getElementById("screen3");
+    if (!element) return;
 
     if (window.scrollY - element.offsetTop > 0) {
       camera.rotation.set(1.76, -1.04, 1.79);
 
-      camera.position.set(
-        -1.513451287958616,
-        -0.8576845145905376,
+      // Calcul de la position z cible
+      const targetPosition =
         -0.1686306495657644 -
-          (window.scrollY - element.offsetTop) / (3 * window.innerHeight)
-      );
-      // ;
+        (window.scrollY - element.offsetTop) / (3 * window.innerHeight);
 
-      // camera.position.set(1.764931612524174 ,-1.047042362292991, 1.7940590045378362)
-      //  camera.rotation.set(-1.513451287958616 ,-0.8576845145905376 ,-0.1686306495657644)
+      // Mise à jour de la valeur cible
+      targetZ.current = targetPosition;
+
+      // Position avec lerp pour un mouvement plus doux
+      const smoothFactor = 0.1; // Ajustez cette valeur entre 0 et 1 pour modifier la vitesse de lissage
+      const newZ = lerp(camera.position.z, targetZ.current, smoothFactor);
+
+      camera.position.set(-1.513451287958616, -0.8576845145905376, newZ);
     }
   };
 
@@ -499,7 +399,6 @@ const ChangeCameraPosition = ({
           window.requestAnimationFrame(() => {
             // interference entre les deux fonctions
             if (posCamera.current === "pos1") {
-              
               MiseEnPosition2();
             }
             GlissementCamera();
@@ -573,6 +472,7 @@ export const Scene = ({
         camera={{
           position: [-0.43, -8.56, -0.09],
           rotation: [1.58, -0.05, 1.79],
+          far: 15,
         }}
         // position: [-5.2, -8, -0.5] }
         // -0.45 -0.2 -0.71
