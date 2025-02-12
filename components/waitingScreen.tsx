@@ -10,23 +10,23 @@ const prompt = Prompt({
 export const WaitingScreen = () => {
   const [progress, setProgress] = useState(0);
 
-  useEffect(() => {
-    const startTime = Date.now();
-    const duration = 2000; // 2 secondes
+  // useEffect(() => {
+  //   const startTime = Date.now();
+  //   const duration = 2000; // 2 secondes
 
-    const updateProgress = () => {
-      const elapsed = Date.now() - startTime;
-      const newProgress = Math.min((elapsed / duration) * 100, 100);
-      if (newProgress < 100) {
-        setProgress(newProgress);
-        requestAnimationFrame(updateProgress);
-      } else {
-        setProgress(100);
-      }
-    };
+  //   const updateProgress = () => {
+  //     const elapsed = Date.now() - startTime;
+  //     const newProgress = Math.min((elapsed / duration) * 100, 100);
+  //     if (newProgress < 100) {
+  //       setProgress(newProgress);
+  //       requestAnimationFrame(updateProgress);
+  //     } else {
+  //       setProgress(100);
+  //     }
+  //   };
 
-    requestAnimationFrame(updateProgress);
-  }, []);
+  //   requestAnimationFrame(updateProgress);
+  // }, []);
 
   return (
     <div className="fixed top-0 left-0 w-full h-full bg-black z-30">

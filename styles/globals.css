@@ -8,6 +8,26 @@
   box-sizing: border-box;
 }
 
+/* body{
+  overflow: hidden;
+} */
+/* document.body.style.overflow = "hidden"; */
+/* html, body {
+  /* overflow-x: hidden; 
+  scrollbar-width: none; 
+  -ms-overflow-style: none; 
+  max-width: 100vw; 
+} */
+
+* {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+::-webkit-scrollbar {
+  display: none;
+} 
+
 
 .content {
   position: relative;
@@ -58,9 +78,7 @@
   }
 }
 
- ::-webkit-scrollbar {
-  display: none;
-} 
+ 
 
 /* Hide scrollbar for IE, Edge and Firefox */
 /* html {
@@ -154,13 +172,31 @@
 
 .compressed-text {
   /* font-family: 'Prompt', sans-serif; */
+  font-size: 1.6rem;
   font-weight: 400;
   /* letter-spacing: -0.05em; Réduit l'espacement entre les lettres */
   /* font-stretch: condensed; Compresse les caractères */
-  transform: scaleY(0.6); /* Compresse horizontalement le texte */
-  
+  transform: scaleY(0.7); /* Compresse horizontalement le texte */
   transform-origin: left center; /* Garde l'alignement à gauche */
 }
+
+
+
+.b-compressed-text {
+  font-weight: 400;
+  /* color: #fff; */
+  transform: scaleY(0.1); /* Compresse horizontalement le texte */
+  transform-origin: left center; /* Garde l'alignement à gauche */
+}
+
+.title2 {
+  transform: scaleY(1.0); /* Compresse horizontalement le texte */
+  transform-origin: left center; /* Garde l'alignement à gauche */
+}
+
+
+
+
 
 
 

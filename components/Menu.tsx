@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { getDistanceFromTop } from "@/utils/utils";
 
-const MenuItem = ({ text, id }: { text: string, id: string }) => {
+const MenuItem = ({ text, id }: { text: string; id: string }) => {
   const lineRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
@@ -14,7 +14,8 @@ const MenuItem = ({ text, id }: { text: string, id: string }) => {
     return (
       rect.top >= 0 &&
       rect.left >= 0 &&
-      rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+      rect.bottom <=
+        (window.innerHeight || document.documentElement.clientHeight) &&
       rect.right <= (window.innerWidth || document.documentElement.clientWidth)
     );
   };
@@ -22,7 +23,7 @@ const MenuItem = ({ text, id }: { text: string, id: string }) => {
   // Exemple d'utilisation dans un useEffect
   useEffect(() => {
     element = document.getElementById(id);
-    
+
     const checkVisibility = () => {
       if (element) {
         const isVisible = isElementVisible(element as HTMLElement);
@@ -30,27 +31,30 @@ const MenuItem = ({ text, id }: { text: string, id: string }) => {
       }
     };
 
-    
     checkVisibility();
-    window.addEventListener('scroll', checkVisibility);
+    window.addEventListener("scroll", checkVisibility);
 
     return () => {
-      window.removeEventListener('scroll', checkVisibility);
+      window.removeEventListener("scroll", checkVisibility);
     };
   }, [id]);
 
   const scrollToSection = () => {
     const element = document.getElementById(id);
     if (element) {
-      element.scrollIntoView({ 
-        behavior: 'smooth',
-        block: 'start'
+      element.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
       });
     }
   };
 
   return (
-    <div data-subMenu className="flex items-center cursor-pointer" onClick={scrollToSection}>
+    <div
+      data-submenu
+      className="flex items-center cursor-pointer group"
+      onClick={scrollToSection}
+    >
       <div
         ref={textRef}
         data-text
@@ -60,7 +64,9 @@ const MenuItem = ({ text, id }: { text: string, id: string }) => {
       </div>
       <div
         ref={lineRef}
-        className={`hover:bg-white h-[3px] ${isVisible ? 'bg-white' : 'bg-[rgb(50,50,50)]'} w-[24px] z-10`}
+        className={`group-hover:bg-white h-[3px] ${
+          isVisible ? "bg-white" : "bg-[rgb(50,50,50)]"
+        } w-[24px] z-10 transition-colors duration-200`}
       />
     </div>
   );
@@ -70,18 +76,22 @@ const Menu = () => {
   // Variable globale pour tracker l'animation en cours
   let isAnimating = false;
   const menuItems = [
-    ["Introduction","hero"],
-    ["Services","screen2"],
-    ["About Us","screen3"],
-    ["Clients & Partners","screen6"],
-    ["Contact","screen6"],
+    ["Introduction", "hero"],
+    ["Services", "screen2"],
+    ["About Us", "screen3"],
+    ["Clients & Partners", "screen6"],
+    ["Contact", "screen6"],
   ];
-  
 
   const menuContainerRef = useRef<HTMLDivElement>(null);
   const helloRef = useRef<HTMLButtonElement>(null);
   const bOneRef = useRef<HTMLDivElement>(null);
   const barreContainerRef = useRef<HTMLDivElement>(null);
+  const fakeContainerRef = useRef<HTMLDivElement>(null);
+  // const animationRef = useRef<number>(0);
+
+
+
 
   useEffect(() => {
     const container = menuContainerRef.current;
@@ -94,7 +104,7 @@ const Menu = () => {
     const handleMouseEnter = () => {
       if (isAnimating) return;
       isAnimating = true;
-      
+
       // Tuer l'animation précédente si elle existe
       if (currentAnimation) {
         currentAnimation.kill();
@@ -113,26 +123,40 @@ const Menu = () => {
       ).reverse();
 
       timeline.to(subMenuElements, {
-        y: (index) => 50 - (index * 10),
+        y: (index) => 50 - index * 10,
         duration: 0.3,
         ease: "power2.out",
       });
 
-      timeline.to(items, {
-        marginBottom: 15,
-        duration: 0.3,
-        stagger: stagger,
-        ease: "power2.out",
-      },"<");
+      timeline.to(
+        items,
+        {
+          marginBottom: 15,
+          duration: 0.3,
+          stagger: stagger,
+          ease: "power2.out",
+        },
+        "<"
+      );
 
-      timeline.to(textElements, {
-        opacity: 1,
-        x: 0,
-        duration: 0.3,
-        stagger: stagger,
-        ease: "power2.out",
-      },">");
+      timeline.to(
+        textElements,
+        {
+          opacity: 1,
+          x: 0,
+          duration: 0.3,
+          stagger: stagger,
+          ease: "power2.out",
+          onComplete: () => {
+            // setAnimationRef(animationRef+1) 
+          },
+
+        },
+        ">",
+        
+      );
     };
+
 
     const handleMouseLeave = () => {
       // Tuer l'animation précédente si elle existe
@@ -151,17 +175,25 @@ const Menu = () => {
         container?.querySelectorAll("[data-submenu]") || []
       );
 
-      timeline.to(subMenuElements, {
-        y: 0,
-        duration: 0.3,
-        ease: "power2.out",
-      },">");
+      timeline.to(
+        subMenuElements,
+        {
+          y: 0,
+          duration: 0.3,
+          ease: "power2.out",
+        },
+        ">"
+      );
 
-      timeline.to(items, {
-        marginBottom: 1,
-        duration: 0.3,
-        ease: "power2.out",
-      },">");
+      timeline.to(
+        items,
+        {
+          marginBottom: 1,
+          duration: 0.3,
+          ease: "power2.out",
+        },
+        ">"
+      );
 
       timeline.to(textElements, {
         opacity: 0,
@@ -170,21 +202,24 @@ const Menu = () => {
         ease: "power2.out",
         onComplete: () => {
           isAnimating = false;
+          // animationRef.current+=1
         },
       });
     };
 
-    container?.addEventListener("mouseover", handleMouseEnter);
-    container?.addEventListener("mouseleave", handleMouseLeave);
+    fakeContainerRef.current?.addEventListener("mouseover", handleMouseEnter);
+    fakeContainerRef.current?.addEventListener("mouseleave", handleMouseLeave);
+
 
     return () => {
-      container?.removeEventListener("mouseover", handleMouseEnter);
-      container?.removeEventListener("mouseleave", handleMouseLeave);
+      fakeContainerRef.current?.removeEventListener("mouseover", handleMouseEnter);
+      fakeContainerRef.current?.removeEventListener("mouseleave", handleMouseLeave);
       // Nettoyer l'animation au démontage
       if (currentAnimation) {
         currentAnimation.kill();
       }
     };
+
   }, []);
 
   useEffect(() => {
@@ -242,14 +277,15 @@ const Menu = () => {
       <div className="flex justify-between items-center">
         <div
           ref={bOneRef}
-          className="compressed-text fixed text-white top-8 left-8 font-32 font-['Prompt'] z-20"
+          className="compressed-text fixed text-white top-6 left-8 font-xl font-['Prompt'] z-20"
         >
-          B one consulting
+          <span className="b-compressed-text">B </span>
+          <span className="">one consulting</span>
         </div>
 
         <button
           ref={helloRef}
-          className="font-20 z-20 w-48 h-12 fixed top-9 right-8 border border-purple text-purple rounded-full"
+          className=" z-20 w-48  fixed top-8 right-8 border border-purple text-purple rounded-full"
         >
           SAY HELLO
         </button>
@@ -260,11 +296,14 @@ const Menu = () => {
       >
         <div className="">
           {menuItems.map((item, index) => (
-            <MenuItem key={index} text={item[0]} id={item[1]}  />
+            <MenuItem key={index} text={item[0]} id={item[1]} />
           ))}
         </div>
+        <div ref={fakeContainerRef} className="absolute top-0 right-0 w-full h-[120px]"></div>
       </div>
     </>
+
+
   );
 };
 

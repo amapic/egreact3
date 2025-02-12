@@ -14,7 +14,7 @@ const ScrollToPlugin = dynamic(
   { ssr: false }
 );
 
-import { getDistanceFromTop } from "@/utils/utils";
+import { createScreen2Triggers } from './ScrollTriggers/ScreenTriggers';
 
 const Screen2 = () => {
   const [isGsapReady, setIsGsapReady] = useState(false);
@@ -54,165 +54,31 @@ const Screen2 = () => {
     });
   }, []);
 
-  function getDistanceFromTop(element: HTMLElement) {
-    const rect = element.getBoundingClientRect();
-    const scrollTop = window.scrollY || document.documentElement.scrollTop;
-    return rect.top + scrollTop;
-}
-
   useEffect(() => {
     if (!isGsapReady || !containerRef.current) return;
 
     const { gsap, ScrollTrigger } = gsapModules.current;
-
-    // Timeline pour les transitions entre sections
     const tl = gsap.timeline();
 
-    const element = document.querySelector("#screen2");
-    const elementAfter = document.querySelector("#screen3");
-    // const elementBefore = document.querySelector("#screen1");
+    
 
-    // Pin the entire section
-    // const mainTrigger = ScrollTrigger.create({
-    //   trigger: containerRef.current,
-    //   pin: true,
-    //   start: "top top",
-    //   end: "+=50%",
-    //   ease: "power2.inOut",
-    //   scrub: 1,
-    //   animation: tl
- 
-    // });
-
-    const mainTriggerAnimLocal = ScrollTrigger.create({
-      trigger: containerRef.current,
-      start: "top center",
-      end: "bottom center",
-      ease: "power2.inOut",
-      animation: tl,
-      // markers: true,
-      onEnter: () => {
-        if (!canTrigger()) return;
-        const element = document.getElementById("screen2");
-        if (!element) return;
-
-        const tl2 = gsap.timeline();
-
-        
-
-        numbersRef.current.forEach((number, index) => {
-          tl2.fromTo(number,
-            {
-              yPercent: -100,
-              opacity: 0
-            },
-            {
-              yPercent: 0,
-              opacity: 1,
-              
-
-            },
-            "<"
-          );
-        });
-
-        tl2.fromTo(
-          bottomBarRef.current,
-          {
-            yPercent: 100,
-            opacity: 0,
-          },
-          {
-            yPercent: 0,
-            opacity: 1,
-            onComplete: () => {
-              // alert("ok")
-              document.body.style.overflow = "";
-              setTimeout(() => {
-                AnimationClipCreator.current=true
-              }, 1000);
-            }
-            
-
-          },
-          ">",
-        );
-
-        
-
-      },
-  
+    const triggers = createScreen2Triggers({
+      containerRef,
+      gsap,
+      ScrollTrigger,
+      timeline: tl,
+      numbersRef,
+      bottomBarRef,
+      AnimationClipCreator,
+      // canTrigger,
     });
-
-    const mainTriggerUp = ScrollTrigger.create({
-      trigger: element,
-      start: "top 5%",
-      end: "top 5%",
-      // markers: true,
-      onEnterBack: () => {
-        if (!canTrigger()) return;
-        document.body.style.overflow = "hidden";
-        gsap.to(window, {
-          scrollTo: {
-            y: 0,
-            ease: "power2.inOut",
-          },
-          duration: 1,
-          onComplete: () => {
-            document.body.style.overflow = "";
-          },
-        });
-      },
-    });
-
-
-    const mainTriggerDown = ScrollTrigger.create({
-      trigger: containerRef.current,
-      start: "bottom 95%",
-      end: "bottom 95%",
-      // markers: true,
-      onEnter: () => {
-        if (!canTrigger()) return;
-        // Vérifier si suffisamment de temps s'est écoulé depuis le dernier déclenchement
-        document.body.style.overflow = "hidden";
-        gsap.to(window, {
-          scrollTo: {
-            y: getDistanceFromTop(elementAfter as HTMLElement),
-            ease: "power2.inOut",
-          },
-          duration: 1,
-          onComplete: () => {
-            document.body.style.overflow = "";
-          },
-        });
-      }
-    });
-
-    const mainTriggerOwnCenter = ScrollTrigger.create({
-      trigger: containerRef.current,
-      start: "top 95%",
-      end: "bottom 95%",
-      // markers: true,
-      onEnter: () => {
-        if (!canTrigger()) return;
-        // Mettre à jour le timestamp du dernier déclenchement
-        gsap.to(window, {
-          scrollTo: {
-            y: getDistanceFromTop(element as HTMLElement),
-            ease: "power2.inOut",
-          },
-          duration: 1,
-        });
-      }
-    });
-       
 
     return () => {
-      // mainTrigger.kill();
-      mainTriggerAnimLocal.kill();
-      mainTriggerDown.kill();
-      mainTriggerUp.kill();
-      mainTriggerOwnCenter.kill();
+      triggers.mainTriggerAnimLocal.kill();
+      triggers.mainTriggerUp.kill();
+      triggers.mainTriggerDown.kill();
+      triggers.mainTriggerOwnCenter.kill();
+      // destroySceneTrigger.kill();
       ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
     };
   }, [isGsapReady]);
@@ -224,7 +90,7 @@ const Screen2 = () => {
       className="relative min-h-screen  text-white overflow-hidden z-10"
     >
       <div className="absolute top-0 left-0 w-full h-full bg-[rgb(16,16,16)]">
-      <h1 className="ml-8 text-3xl xl:text-5xl mt-32 mb-24 bg-gradient-to-b from-gray-900 to-white bg-clip-text text-transparent">
+      <h1 className="ml-8 text-3xl xl:text-5xl mt-40 mb-24 bg-gradient-to-b from-gray-600 to-white bg-clip-text text-transparent">
         360° SERVICES
       </h1>
 

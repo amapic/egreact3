@@ -43,7 +43,7 @@ const Hero = () => {
         <div className="grid grid-cols-2 grid-rows-2  pb-16">
           <div
             ref={textRef}
-            className="relative text-white h-titre text-7xl font-['Prompt'] text-right"
+            className="title2 font-thin relative text-white h-titre text-7xl font-['Prompt'] text-right"
           >
             WE CREATE
           </div>
@@ -51,7 +51,7 @@ const Hero = () => {
           <div></div>
           <div
             ref={textRef2}
-            className="relative text-white h-titre text-7xl font-['Prompt'] text-left"
+            className="title2 relative text-white h-titre text-7xl font-['Prompt'] text-left"
           >
             YOU CONQUER!
             
