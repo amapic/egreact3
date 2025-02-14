@@ -78,7 +78,6 @@ const Screen2 = () => {
       triggers.mainTriggerUp.kill();
       triggers.mainTriggerDown.kill();
       triggers.mainTriggerOwnCenter.kill();
-      // destroySceneTrigger.kill();
       ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
     };
   }, [isGsapReady]);

@@ -111,7 +111,7 @@ export const Screen6ClientsEtPartners = ({ setAnimateCanvas1 }: Screen6Props) =>
       trigger: document.querySelector("#screen6"),
       start: "bottom 100%",
       end: "bottom 100%",
-      markers: true,
+      // markers: true,
       onEnter: () => {
         setAnimateCanvas1(false);
         

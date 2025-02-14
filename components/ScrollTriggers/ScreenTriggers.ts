@@ -159,6 +159,7 @@ export const createScreen2Triggers = ({
     end: "bottom 95%",
     onEnter: () => {
       if (!canTrigger()) return;
+      
       // document.body.style.overflow = "hidden";
       DomUtils.disableScroll()
       gsap.to(window, {
@@ -222,9 +223,11 @@ export const createScreen3Triggers = ({
     trigger: element,
     start: "top 95%",
     end: "bottom center",
+    // markers: true,
     onEnter: () => {
-      if (!canTrigger()) return;
+
       setTimeout(() => {
+        
         setIsVisible(true);
       }, 1000);
     },

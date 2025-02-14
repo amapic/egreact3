@@ -1,17 +1,20 @@
 "use client";
 import { useMemo, useRef, useEffect, useState } from "react";
-// import { OrbitControls, MeshTransmissionMaterial } from "@react-three/drei";
+import { OrbitControls, MeshTransmissionMaterial } from "@react-three/drei";
 import {
   Canvas,
   useFrame,
   extend,
   useThree,
-  // AmbientLight,
 } from "@react-three/fiber";
 import { lerp, damp } from "three/src/math/MathUtils";
 import * as THREE from "three";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import React from "react";
+// Import des composants WebGPU
+// import WebGPU from 'three/addons/capabilities/WebGPU.js';
+// import WebGPURenderer from 'three/addons/renderers/webgpu/WebGPURenderer.js';
+// import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 extend({ Bloom });
 const CustomGeometryParticles = (props: { caca: (value: boolean) => void }) => {
@@ -53,7 +56,7 @@ const CustomGeometryParticles = (props: { caca: (value: boolean) => void }) => {
       vec4 projectedPosition = projectionMatrix * viewPosition;
 
       vec2 screenPosition = projectedPosition.xy / projectedPosition.w;
-      vDistance = length(screenPosition - uMouse);
+      vDistance = length(screenPosition - uMouse)*2.0;
 
       gl_Position = projectedPosition;
       gl_PointSize = ${pointSize.current}.0 * (1.0 / -viewPosition.z);
@@ -75,7 +78,7 @@ const CustomGeometryParticles = (props: { caca: (value: boolean) => void }) => {
       vec3 pinkColor = vec3(1.0, 0.2, 0.8);
       vec3 flashColor = vec3(1.0, 1.0, 1.0);
       
-      float colorMix = smoothstep(0.5, 0.0, vDistance);
+      float colorMix = smoothstep(1.0, 0.0, vDistance);
       vec3 baseColor = mix(blueColor, pinkColor, colorMix);
       
       // Mélanger avec la couleur de l'éclair
@@ -196,6 +199,8 @@ const CustomGeometryParticles = (props: { caca: (value: boolean) => void }) => {
 
     // const currentTime = clock.elapsedTime;
     uniforms.current.uTime.value = clock.elapsedTime;
+    uniforms.current.uMouse.value.x = mouse.x;
+    uniforms.current.uMouse.value.y = mouse.y;
 
     // console.log(camera.rotation.x, camera.rotation.y, camera.rotation.z);
     frameCountRef.current++;
@@ -353,7 +358,132 @@ const CustomGeometryParticles = (props: { caca: (value: boolean) => void }) => {
   );
 };
 
-const ChangeCameraPosition = ({ param }: { param: React.RefObject<number> }) => {
+// Type pour une position de caméra complète
+type CameraState = {
+  position: {
+    x: number;
+    y: number;
+    z: number;
+  };
+  rotation: {
+    x: number;
+    y: number;
+    z: number;
+  };
+};
+
+// Type pour une transition de caméra
+type CameraTransition = {
+  start: CameraState;
+  end: CameraState;
+  scroll: {
+    start: number;  // En nombre de hauteurs d'écran depuis screen2
+    end: number;    // En nombre de hauteurs d'écran depuis screen2
+  };
+};
+
+const cameraTransitions: CameraTransition[] = [
+  {
+    // Première transition (pendant screen2)
+    start: {
+      position: { x: -1.513451287958616, y: -0.8576845145905376, z: -0.16 },
+      rotation: { x: 1.76, y: -1.04, z: 1.79 }
+    },
+    end: {
+      position: { x: -8.411752105336905, y: -0.5711750747998187, z: -1.5436274007310815 },
+      rotation: { x: 2.7871939668087276, y: -1.3775694456088587, z: 2.793264418094779 }
+    },
+    scroll: {
+      start: 0,    // Début de screen2
+      end: 1       // Une hauteur d'écran plus tard
+    }
+  },
+  {
+    // Deuxième transition (toujours pendant screen2)
+    start: {
+      position: { x: -8.411752105336905, y: -0.5711750747998187, z: -1.5436274007310815 },
+      rotation: { x: 2.7871939668087276, y: -1.3775694456088587, z: 2.793264418094779 }
+    },
+    // end: {
+    //   position: { x:  -8.411752105336905, y: -0.5711750747998187, z: -1.5436274007310815 },
+    //   rotation: { x: 2.727185658257895, y: 1.559418863341496625, z: -3.115476753365755 }
+    // },
+    // end: {
+    //   position: { x:  -6.611752105336905, y: -8.5711750747998187, z: -2.936274007310815 },
+    //   rotation: { x: 1.527185658257895, y: -2.09418863341496625, z: 0.215476753365755 }
+    // },
+    end: {
+      // position: { x:  3.0411752105336905, y: -6.6411750747998187, z: 5.6274007310815 },
+      // position: { x:  1.8311752105336905, y: -1.6411750747998187, z: -1.4874007310815 },
+      position: { x:  0.8911752105336905, y: -1.6411750747998187, z: -1.4874007310815 },
+      // rotation: { x: 0.86, y: -0.05, z: 0.06 }
+      rotation: { x: 2.3371939668087276, y:0.3975694456088587, z: -2.793264418094779 }
+      // rotation: { x: 1.26, y: -1.05, z: 0.1 }
+    },
+    scroll: {
+      start: 1,    // Une hauteur d'écran après le début de screen2
+      end:5     // Deux hauteurs d'écran après le début de screen2
+    }
+  },
+  {
+    // Deuxième transition (toujours pendant screen2)
+    start: {
+      // position: { x:  -6.611752105336905, y: -8.5711750747998187, z: -2.936274007310815 },
+      // rotation: { x: 1.527185658257895, y: -2.09418863341496625, z: 0.215476753365755 }
+      position: { x:  0.8911752105336905, y: -1.6411750747998187, z: -1.4874007310815 },
+      // rotation: { x: 0.86, y: -0.05, z: 0.06 }
+      rotation: { x: 2.3371939668087276, y:0.3975694456088587, z: -2.793264418094779 }
+    },
+
+    end: {
+      // position: { x:  3.0411752105336905, y: -6.6411750747998187, z: 5.6274007310815 },
+      position: { x:  1.8311752105336905, y: -1.6411750747998187, z: -1.4874007310815 },
+      // rotation: { x: 0.86, y: -0.05, z: 0.06 }
+      rotation: { x: 1.26, y: -1.05, z: 0.1 }
+    },
+    // end: {
+    //   position: { x:  -7.8311752105336905, y: -10.6411750747998187, z: -5.4874007310815 },
+    //   rotation: { x: 1.89, y: 0.07, z: -2.91 }
+    // },
+    scroll: {
+      start: 5,    // Une hauteur d'écran après le début de screen2
+      end:6     // Deux hauteurs d'écran après le début de screen2
+    }
+  }
+];
+
+// Fonction pour interpoler entre deux états de caméra
+const lerpCameraState = (
+  start: CameraState,
+  end: CameraState,
+  progress: number,
+  smoothFactor: number = 0.1
+): CameraState => {
+  const easeInOutQuad = (t: number) => {
+    return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+  };
+
+  const easedProgress = easeInOutQuad(progress);
+
+  return {
+    position: {
+      x: lerp(start.position.x, end.position.x, easedProgress, smoothFactor),
+      y: lerp(start.position.y, end.position.y, easedProgress, smoothFactor),
+      z: lerp(start.position.z, end.position.z, easedProgress, smoothFactor),
+    },
+    rotation: {
+      x: lerp(start.rotation.x, end.rotation.x, easedProgress, smoothFactor),
+      y: lerp(start.rotation.y, end.rotation.y, easedProgress, smoothFactor),
+      z: lerp(start.rotation.z, end.rotation.z, easedProgress, smoothFactor),
+    },
+  };
+};
+
+const ChangeCameraPosition = ({
+  param,
+}: {
+  param: React.RefObject<number>;
+}) => {
   const { camera } = useThree();
   const posCamera = useRef("pos1");
   const mouse = useRef({ x: 0, y: 0 });
@@ -362,7 +492,7 @@ const ChangeCameraPosition = ({ param }: { param: React.RefObject<number> }) => 
   const maxRadius = 0.01; // Rayon maximum de déplacement de la caméra
   const maxLookAtRadius = 0.005; // Rayon plus petit pour le lookAt
   const cameraPosRef = useRef(new THREE.Vector3());
-  
+
   const camepos1 = useRef(new THREE.Vector3(-0.43, -8.56, -0.09));
 
   useFrame(({ camera }) => {
@@ -372,25 +502,41 @@ const ChangeCameraPosition = ({ param }: { param: React.RefObject<number> }) => 
       const phi = mouse.current.y * Math.PI * 0.5; // Angle vertical
 
       // Calculer la nouvelle position cible autour de camepos1
-      targetPosition.current.x = camepos1.current.x + maxRadius * Math.sin(theta) * Math.cos(phi);
+      targetPosition.current.x =
+        camepos1.current.x + maxRadius * Math.sin(theta) * Math.cos(phi);
       targetPosition.current.y = camepos1.current.y + maxRadius * Math.sin(phi);
-      targetPosition.current.z = camepos1.current.z + maxRadius * Math.cos(theta) * Math.cos(phi);
+      targetPosition.current.z =
+        camepos1.current.z + maxRadius * Math.cos(theta) * Math.cos(phi);
 
       // Calculer le nouveau point de lookAt autour de l'origine
-      lookAtTarget.current.x = maxLookAtRadius * Math.sin(theta) * Math.cos(phi);
+      lookAtTarget.current.x =
+        maxLookAtRadius * Math.sin(theta) * Math.cos(phi);
       lookAtTarget.current.y = maxLookAtRadius * Math.sin(phi);
-      lookAtTarget.current.z = maxLookAtRadius * Math.cos(theta) * Math.cos(phi);
+      lookAtTarget.current.z =
+        maxLookAtRadius * Math.cos(theta) * Math.cos(phi);
 
       // Appliquer un lerp à la position de la caméra
-      camera.position.x = lerp(camera.position.x, targetPosition.current.x, 0.05);
-      camera.position.y = lerp(camera.position.y, targetPosition.current.y, 0.05);
-      camera.position.z = lerp(camera.position.z, targetPosition.current.z, 0.05);
+      // camera.position.x = lerp(
+      //   camera.position.x,
+      //   targetPosition.current.x,
+      //   0.05
+      // );
+      // camera.position.y = lerp(
+      //   camera.position.y,
+      //   targetPosition.current.y,
+      //   0.05
+      // );
+      // camera.position.z = lerp(
+      //   camera.position.z,
+      //   targetPosition.current.z,
+      //   0.05
+      // );
 
       // Mettre à jour la référence de position
       cameraPosRef.current = camera.position;
 
       // Faire regarder la caméra vers le point oscillant
-      camera.lookAt(lookAtTarget.current);
+      // camera.lookAt(lookAtTarget.current);
     }
   });
 
@@ -406,12 +552,14 @@ const ChangeCameraPosition = ({ param }: { param: React.RefObject<number> }) => 
   }, []);
 
   useFrame(() => {
+    console.log(camera.position);
+    console.log(camera.rotation);
     // Applique le lissage à chaque frame
-    if (posCamera.current === "pos2") {
-      const smoothFactor = 0.1;
-      const newZ = lerp(camera.position.z, targetZ.current, smoothFactor);
-      camera.position.z = newZ;
-    }
+    // if (posCamera.current === "pos2") {
+    // const smoothFactor = 0.1;
+    // const newZ = lerp(camera.position.z, targetZ.current, smoothFactor);
+    // camera.position.z = newZ;
+    // }
   });
   // Fonction d'interpolation linéaire (lerp)
   const lerp = (start: number, end: number, factor: number) => {
@@ -426,87 +574,44 @@ const ChangeCameraPosition = ({ param }: { param: React.RefObject<number> }) => 
     posCamera.current = "pos1";
   };
 
-  const MiseEnPosition2 = () => {
-    const element = document.getElementById("screen2");
-    if (!element) return; // Protection contre element null
+  const EvolutionPositionCamera = () => {
+    const screen2 = document.getElementById('screen2');
+    if (!screen2) return;
 
-    if (window.scrollY - element.offsetTop > 0) {
-      // Positions de départ et d'arrivée
-      const startPos = {
-        x: -1.513451287958616,
-        y: -0.8576845145905376,
-        z: -0.16,
-      };
+    const screen2Start = screen2.offsetTop;
+    const windowHeight = window.innerHeight;
+    const scrollFromScreen2 = window.scrollY - screen2Start;
+    const scrollInScreens = scrollFromScreen2 / windowHeight; // Nombre d'écrans scrollés depuis screen2
 
-      const endPos = {
-        x: -8.411752105336905,
-        y: -0.5711750747998187,
-        z: -1.5436274007310815,
-      };
-
-      // Rotations de départ et d'arrivée
-      const startRot = {
-        x: 1.76,
-        y: -1.04,
-        z: 1.79,
-      };
-
-      const endRot = {
-        x: 2.7871939668087276,
-        y: -1.3775694456088587,
-        z: 2.793264418094779,
-      };
-
-      // Fonction d'easing Power2.inOut
-      const easeInOutQuad = (t: number) => {
-        return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
-      };
-
-      const scrollProgress =
-        (window.scrollY - element.offsetTop) / window.innerHeight;
-      const smoothFactor = 0.1;
-
-      // Appliquer l'easing au scrollProgress
-      const easedProgress = easeInOutQuad(scrollProgress);
-
-      // Lerp avec easing pour la position
-      const newX = lerp(
-        camera.position.x,
-        lerp(startPos.x, endPos.x, easedProgress),
-        smoothFactor
-      );
-      const newY = lerp(
-        camera.position.y,
-        lerp(startPos.y, endPos.y, easedProgress),
-        smoothFactor
-      );
-      const newZ = lerp(
-        camera.position.z,
-        lerp(startPos.z, endPos.z, easedProgress),
-        smoothFactor
-      );
-
-      // Lerp avec easing pour la rotation
-      const newRotX = lerp(
-        camera.rotation.x,
-        lerp(startRot.x, endRot.x, easedProgress),
-        smoothFactor
-      );
-      const newRotY = lerp(
-        camera.rotation.y,
-        lerp(startRot.y, endRot.y, easedProgress),
-        smoothFactor
-      );
-      const newRotZ = lerp(
-        camera.rotation.z,
-        lerp(startRot.z, endRot.z, easedProgress),
-        smoothFactor
-      );
-
-      // Application des nouvelles valeurs
-      camera.position.set(newX, newY, newZ);
-      camera.rotation.set(newRotX, newRotY, newRotZ);
+    if (scrollFromScreen2 >= 0) {
+      posCamera.current = "pos2";
     }
+
+    console.log(scrollInScreens);
+    // Parcourir toutes les transitions
+    cameraTransitions.forEach((transition) => {
+      if (scrollInScreens >= transition.scroll.start && scrollInScreens <= transition.scroll.end) {
+        const progress = (scrollInScreens - transition.scroll.start) / 
+                        (transition.scroll.end - transition.scroll.start);
+        
+        const newCameraState = lerpCameraState(
+          transition.start,
+          transition.end,
+          Math.min(1, Math.max(0, progress))
+        );
+
+        camera.position.set(
+          newCameraState.position.x,
+          newCameraState.position.y,
+          newCameraState.position.z
+        );
+        camera.rotation.set(
+          newCameraState.rotation.x,
+          newCameraState.rotation.y,
+          newCameraState.rotation.z
+        );
+      }
+    });
   };
 
   const GlissementCamera = () => {
@@ -602,9 +707,9 @@ const ChangeCameraPosition = ({ param }: { param: React.RefObject<number> }) => 
         if (!ticking) {
           window.requestAnimationFrame(() => {
             // interference entre les deux fonctions
-            if (posCamera.current === "pos1") {
-              MiseEnPosition2();
-            }
+            // if (posCamera.current === "pos1") {
+            EvolutionPositionCamera();
+            // }
             // GlissementCamera();
             ticking = false;
           });
@@ -678,15 +783,13 @@ export const Scene = ({
         camera={{
           position: [-0.43, -8.56, -0.09],
           rotation: [1.58, -0.05, 1.79],
-          // far: 15,
         }}
-        // position: [-5.2, -8, -0.5] }
-        // -0.45 -0.2 -0.71
         gl={{
           alpha: true,
           antialias: false,
+          powerPreference: "high-performance",
         }}
-        onCreated={({ gl }) => {
+        onCreated={({ gl, scene, camera }) => {
           gl.setClearColor("#101010", 1);
         }}
       >
@@ -700,13 +803,8 @@ export const Scene = ({
             mipmapBlur
           />
         </EffectComposer>
-        {/* <OrbitControls */}
-        {/* // enableZoom={false}
-          // enablePan={false}
-          // enableRotate={true} */}
-        {/* />  */}
+        <OrbitControls enableZoom={false} enablePan={false} enableRotate={false} />
         <ChangeCameraPosition param={param} />
-        {/* <axesHelper args={[1]} /> */}
       </Canvas>
     </div>
   );

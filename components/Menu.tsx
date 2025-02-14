@@ -41,6 +41,7 @@ const MenuItem = ({ text, id }: { text: string; id: string }) => {
 
   const scrollToSection = () => {
     const element = document.getElementById(id);
+    alert("scrollToSection");
     if (element) {
       element.scrollIntoView({
         behavior: "smooth",
@@ -52,13 +53,13 @@ const MenuItem = ({ text, id }: { text: string; id: string }) => {
   return (
     <div
       data-submenu
-      className="flex items-center cursor-pointer group"
+      className="flex bg-blue-500 items-center cursor-pointer group z-10"
       onClick={scrollToSection}
     >
       <div
         ref={textRef}
         data-text
-        className="hover:font-white text-[rgb(230,230,230)] text-md opacity-0 -translate-x-[10px] w-[200px] leading-4 text-right pr-4"
+        className="z-10 cursor-pointer hover:font-white text-[rgb(230,230,230)] text-md opacity-0 -translate-x-[10px] w-[200px] leading-4 text-right pr-4"
       >
         {text}
       </div>
@@ -66,8 +67,9 @@ const MenuItem = ({ text, id }: { text: string; id: string }) => {
         ref={lineRef}
         className={`group-hover:bg-white h-[3px] ${
           isVisible ? "bg-white" : "bg-[rgb(50,50,50)]"
-        } w-[24px] z-10 transition-colors duration-200`}
+        } w-[24px] cursor-pointer z-10 transition-colors duration-200`}
       />
+
     </div>
   );
 };
@@ -88,24 +90,19 @@ const Menu = () => {
   const bOneRef = useRef<HTMLDivElement>(null);
   const barreContainerRef = useRef<HTMLDivElement>(null);
   const fakeContainerRef = useRef<HTMLDivElement>(null);
-  // const animationRef = useRef<number>(0);
-
-
-
+  const initialHeightRef = useRef<number>(0);
+  let currentAnimation: gsap.core.Timeline | null = null;
 
   useEffect(() => {
     const container = menuContainerRef.current;
-    const items = Array.from(container?.children || []);
-    const barreContainer = barreContainerRef.current;
-
-    // Créer une référence pour stocker l'animation en cours
-    let currentAnimation: gsap.Timeline | null = null;
+    const fakeContainer = fakeContainerRef.current;
+    // fakeContainerRef
+    initialHeightRef.current = container?.offsetHeight || 0;
 
     const handleMouseEnter = () => {
       if (isAnimating) return;
       isAnimating = true;
 
-      // Tuer l'animation précédente si elle existe
       if (currentAnimation) {
         currentAnimation.kill();
       }
@@ -113,6 +110,17 @@ const Menu = () => {
       const timeline = gsap.timeline();
       currentAnimation = timeline;
       const stagger = 0.1;
+
+      
+
+      const items = container?.querySelectorAll("[data-submenu]");
+
+      timeline.to(items, {
+        marginBottom: 15,
+        duration: 0.3,
+        stagger: stagger,
+        ease: "power2.out",
+      }, "<");
 
       const textElements = Array.from(
         container?.querySelectorAll("[data-text]") || []
@@ -128,16 +136,18 @@ const Menu = () => {
         ease: "power2.out",
       });
 
-      timeline.to(
-        items,
-        {
-          marginBottom: 15,
-          duration: 0.3,
-          stagger: stagger,
-          ease: "power2.out",
-        },
-        "<"
-      );
+      // Utiliser la hauteur initiale stockée
+      // timeline.to(container, {
+      //   height: initialHeightRef.current * 2.2,
+      //   duration: 0.3,
+      //   ease: "power2.out"
+      // },"<");
+
+      // timeline.to(fakeContainer, {
+      //   scaleY: 1.2,
+      //   duration: 0.3,
+      //   ease: "power2.out"
+      // },"<");
 
       timeline.to(
         textElements,
@@ -157,15 +167,25 @@ const Menu = () => {
       );
     };
 
-
     const handleMouseLeave = () => {
-      // Tuer l'animation précédente si elle existe
-      if (currentAnimation) {
-        currentAnimation.kill();
-      }
+      
 
       const timeline = gsap.timeline();
       currentAnimation = timeline;
+
+      const items = container?.querySelectorAll("[data-submenu]");
+
+      timeline.to(container, {
+        height: initialHeightRef.current,
+        duration: 0.3,
+        ease: "power2.out"
+      });
+
+      timeline.to(items, {
+        marginBottom: 1,
+        duration: 0.3,
+        ease: "power2.out",
+      }, ">");
 
       const textElements = Array.from(
         container?.querySelectorAll("[data-text]") || []
@@ -173,53 +193,49 @@ const Menu = () => {
 
       const subMenuElements = Array.from(
         container?.querySelectorAll("[data-submenu]") || []
-      );
+      ).reverse();
 
-      timeline.to(
-        subMenuElements,
-        {
-          y: 0,
-          duration: 0.3,
-          ease: "power2.out",
-        },
-        ">"
-      );
-
-      timeline.to(
-        items,
-        {
-          marginBottom: 1,
-          duration: 0.3,
-          ease: "power2.out",
-        },
-        ">"
-      );
-
-      timeline.to(textElements, {
-        opacity: 0,
-        x: -10,
+      timeline.to(subMenuElements, {
+        y: (index) => 0,
         duration: 0.3,
         ease: "power2.out",
-        onComplete: () => {
-          isAnimating = false;
-          // animationRef.current+=1
-        },
       });
+
+      // timeline.to(container, {
+      //   height: initialHeightRef.current,
+      //   duration: 0.3,
+      //   ease: "power2.out"
+      // });
+
+      timeline.to(
+        textElements,
+        {
+          opacity: 0,
+          x: -10,
+          duration: 0.3,
+          ease: "power2.out",
+          onComplete: () => {
+            isAnimating = false;
+            // animationRef.current+=1
+          },
+        },
+        ">",
+      );
     };
 
-    fakeContainerRef.current?.addEventListener("mouseover", handleMouseEnter);
-    fakeContainerRef.current?.addEventListener("mouseleave", handleMouseLeave);
+    
 
+    container?.addEventListener("mouseover", handleMouseEnter);
+    container?.addEventListener("mouseleave", handleMouseLeave);
 
     return () => {
-      fakeContainerRef.current?.removeEventListener("mouseover", handleMouseEnter);
-      fakeContainerRef.current?.removeEventListener("mouseleave", handleMouseLeave);
+      container?.removeEventListener("mouseover", handleMouseEnter);
+      container?.removeEventListener("mouseleave", handleMouseLeave);
       // Nettoyer l'animation au démontage
       if (currentAnimation) {
         currentAnimation.kill();
       }
     };
-
   }, []);
 
   useEffect(() => {
@@ -264,7 +280,7 @@ const Menu = () => {
         ease: "power3.out",
       }
     );
-  });
+  }, []);
 
   return (
     <>
@@ -292,14 +308,14 @@ const Menu = () => {
       </div>
       <div
         ref={menuContainerRef}
-        className="fixed top-30 right-10 flex flex-col gap-0 pl-1 z-20 "
+        className="bg-red-500 fixed top-30 right-10 flex flex-col  pl-1 z-20 "
       >
         <div className="">
           {menuItems.map((item, index) => (
             <MenuItem key={index} text={item[0]} id={item[1]} />
           ))}
         </div>
-        <div ref={fakeContainerRef} className="absolute top-0 right-0 w-full h-[120px]"></div>
+        {/* <div ref={fakeContainerRef} className=" absolute top-0 right-0 w-full h-[200px] z-0"></div> */}
       </div>
     </>
 

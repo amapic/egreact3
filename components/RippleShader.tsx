@@ -173,7 +173,7 @@ const RippleShaderMaterial = () => {
 
 const RippleShaderFiber = ({ animate }: { animate: boolean }) => {
   return (
-    <div id="ripple" className="absolute top-0 left-0 w-full h-screen bg-orange" style={{ zIndex: -1 }}>
+    <div id="ripple" className="absolute top-0 left-0 w-full h-screen" style={{ zIndex: -1 }}>
       <Canvas
         frameloop={animate ? "always" : "never"}
         camera={{

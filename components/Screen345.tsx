@@ -17,7 +17,7 @@ import { createScreen3Triggers, createScreen4Triggers, createScreen5Triggers } f
 
 import { getDistanceFromTop } from "@/utils/utils";
 
-export function Screen3() {
+export const Screen3 = React.memo(() => {
   const [val1, setVal1] = useState(0);
   const [val2, setVal2] = useState(0);
   const [val3, setVal3] = useState(0);
@@ -51,7 +51,7 @@ export function Screen3() {
         console.warn("Required elements not found");
         return;
       }
-      let timeInterval3;
+      let timeInterval3: NodeJS.Timeout;
 
       const timeInterval = setInterval(() => {
         val1 < 10 && setVal1((prevCount) => prevCount + 1);
@@ -137,7 +137,7 @@ export function Screen3() {
       </div>
     </div>
   );
-}
+});
 
 export const Screen4 = () => {
   const [isGsapReady, setIsGsapReady] = useState(false);
