@@ -14,6 +14,10 @@ const ScrollToPlugin = dynamic(
   { ssr: false }
 );
 
+import { useGSAP } from '@gsap/react';
+
+// gsap.registerPlugin(useGSAP);
+
 class DomUtils {
   // left: 37, up: 38, right: 39, down: 40,
   // spacebar: 32, pageup: 33, pagedown: 34, end: 35, home: 36
@@ -71,7 +75,7 @@ export const Screen6ClientsEtPartners = ({ setAnimateCanvas1 }: Screen6Props) =>
   const gsapModules = useRef<any>({});
   const [animateCanvas2, setAnimateCanvas2] = useState(false);
 
-  useEffect(() => {
+  useGSAP(() => {
     Promise.all([
       import("gsap").then((mod) => mod.default),
       import("gsap/dist/ScrollTrigger").then((mod) => mod.ScrollTrigger),
@@ -83,7 +87,7 @@ export const Screen6ClientsEtPartners = ({ setAnimateCanvas1 }: Screen6Props) =>
     });
   }, []);
 
-  useEffect(() => {
+  useGSAP(() => {
     if (!isGsapReady) return;
 
     const { gsap, ScrollTrigger } = gsapModules.current;

@@ -20,6 +20,14 @@ const nextConfig: NextConfig = {
     // !! WARN !!
     ignoreBuildErrors: true,
   },
+  //nécessaire pour webgpu ??
+  webpack: (config) => {
+    config.experiments = {
+      ...config.experiments,
+      topLevelAwait: true
+    }
+    return config
+  }
 };
 
 export default nextConfig;

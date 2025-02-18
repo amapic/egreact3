@@ -2,16 +2,19 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
+import { DomUtils } from "@/utils/utils";
+
+gsap.registerPlugin(useGSAP);
 
 export const Hero = React.memo(() => {
   const textRef = useRef(null);
   const textRef2 = useRef(null);
   // const isAnimationDone = useRef(false); // Pour tracker si l'animation a déjà été faite
   // console.log("Hero useEffect is triggered, isAnimationDone:", isAnimationDone.current);
-  useEffect(() => {
-    
+  useGSAP(() => {
     // if (isAnimationDone.current) return;
-    
+
     // Stocker les références des animations
     const anim1 = gsap.fromTo(
       textRef.current,
@@ -59,7 +62,7 @@ export const Hero = React.memo(() => {
         <div className="grid grid-cols-2 grid-rows-2  pb-16">
           <div
             ref={textRef}
-            className="title2 font-thin relative text-white h-titre text-7xl font-['Prompt'] text-right"
+            className="title2 font-thin relative text-white h-titre text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-['Prompt'] text-right"
           >
             WE CREATE
           </div>
@@ -67,12 +70,22 @@ export const Hero = React.memo(() => {
           <div></div>
           <div
             ref={textRef2}
-            className="title2 relative text-white h-titre text-7xl font-['Prompt'] text-left"
+            className="title2 relative text-white h-titre text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-['Prompt'] text-left"
           >
             YOU CONQUER!
           </div>
         </div>
-        <div className="z-10 absolute bottom-8 left-8 text-white text-[16px] font-['Prompt']">
+        <div
+          className="z-10 absolute  bottom-8 left-8 text-white text-[16px] font-['Prompt']"
+          onClick={() => {
+            const element = document.querySelector("#screen2");
+            // element?.scrollIntoView({ behavior: "smooth" });
+            // setTimeout(() => {
+              // console.log("enableScroll 2");
+              // DomUtils.enableScroll()
+            // }, 2000)
+          }}
+        >
           Scroll for more{" "}
           <span className="text-white text-xl font-['Prompt']">↓</span>
         </div>

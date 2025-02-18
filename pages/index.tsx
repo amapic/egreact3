@@ -8,7 +8,8 @@ import Screen6 from "@/components/Screen6";
 // import RippleShader from "@/components/RippleShader";
 import Interstitial from "@/components/Interstitial";
 // const MemoizedScreen3 = memo(Screen3);
-
+import WebGPUParticles from '@/components/WebGPUParticles';
+import WebGPUTest from '@/components/WebGPUTest';
 import { useRef, useState, useEffect, memo, useMemo } from "react";
 const AppHero = memo(Hero);
 import { WaitingScreen } from "@/components/waitingScreen";
@@ -19,14 +20,14 @@ const prompt = Prompt({
   display: "swap",
 });
 
-function AppContent() {
+
+
+function Home() {
   return (
-    <>
-    <Hero />
-    <App />
-    
-    </>
-  )
+    <main>
+      <WebGPUParticles />
+    </main>
+  );
 }
 
 function App() {

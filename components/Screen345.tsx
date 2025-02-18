@@ -13,9 +13,17 @@ const ScrollToPlugin = dynamic(
   () => import("gsap/ScrollToPlugin").then((mod) => mod.ScrollToPlugin),
   { ssr: false }
 );
-import { createScreen3Triggers, createScreen4Triggers, createScreen5Triggers } from '@/components/ScrollTriggers/ScreenTriggers';
+import {
+  createScreen3Triggers,
+  createScreen4Triggers,
+  createScreen5Triggers,
+} from "@/components/ScrollTriggers/ScreenTriggers";
 
 import { getDistanceFromTop } from "@/utils/utils";
+
+import { useGSAP } from "@gsap/react";
+
+// gsap.registerPlugin(useGSAP);
 
 export const Screen3 = React.memo(() => {
   const [val1, setVal1] = useState(0);
@@ -27,7 +35,7 @@ export const Screen3 = React.memo(() => {
   const [isGsapReady, setIsGsapReady] = useState(false);
   const gsapModules = useRef<any>({});
 
-  useEffect(() => {
+  useGSAP(() => {
     Promise.all([
       import("gsap").then((mod) => mod.default),
       import("gsap/dist/ScrollTrigger").then((mod) => mod.ScrollTrigger),
@@ -82,16 +90,16 @@ export const Screen3 = React.memo(() => {
     }
   }, [val1, val2, val3, val4, isVisible, isGsapReady]);
 
-  useEffect(() => {
+  useGSAP(() => {
     if (!isGsapReady) return;
-  
+
     const { gsap, ScrollTrigger } = gsapModules.current;
     const triggers = createScreen3Triggers({
       gsap,
       ScrollTrigger,
       setIsVisible,
     });
-  
+
     return () => {
       triggers.scrollTrigger.kill();
       triggers.mainTriggerUp.kill();
@@ -102,9 +110,9 @@ export const Screen3 = React.memo(() => {
     <div
       id="screen3"
       // className="w-full h-screen bg-orange  text-white flex items-center justify-center font-['Prompt'] z-20"
-      className="relative w-full h-screen text-white flex items-center justify-center z-0"
+      className="relative w-full h-screen text-white flex justify-center z-0"
     >
-      <div className="flex flex-col w-1/4 flex items-center justify-center">
+      {/* <div className="flex flex-col w-1/4 flex items-center justify-center">
         <span className="text-4xl text-center font-bold xl:text-6xl">
           +{val1}
         </span>
@@ -126,14 +134,53 @@ export const Screen3 = React.memo(() => {
         <span className="pt-2 text-base text-center xl:text-2xl">
           continents
         </span>
+      </div> */}
+      <div className="flex w-1/3 sm:w-1/4">
+        <div className="relative w-full h-full">
+        <div className="absolute top-[40%] w-full flex items-center justify-center flex-col my-auto">      <span className="text-4xl text-center font-bold xl:text-6xl">
+              +{val1}
+            </span>
+            <span className="pt-2  text-base text-center xl:text-2xl">
+              years experience
+            </span>
+          </div>
+        </div>
       </div>
-      <div className="flex flex-col w-1/4  flex items-center justify-center">
-        <span className="text-4xl text-center font-bold xl:text-6xl">
-          {val4} %
-        </span>
-        <span className="pt-2  text-base text-center xl:text-2xl">
-          satisfied customers
-        </span>
+      <div className="flex w-1/3 sm:w-1/4">
+        <div className="relative w-full h-full">
+          <div className="absolute top-[40%] w-full flex items-center justify-center flex-col my-auto">
+            <span className="text-4xl text-center font-bold xl:text-6xl">
+              +{val2}
+            </span>
+            <span className="pt-2 text-base text-center xl:text-2xl">
+              projects
+            </span>
+          </div>
+        </div>
+      </div>
+      <div className="flex w-1/3 sm:w-1/4">
+        <div className="relative w-full h-full">
+          <div className="absolute top-[40%] w-full flex items-center justify-center flex-col my-auto">
+            <span className="text-4xl text-center font-bold xl:text-6xl">
+              {val3}
+            </span>
+            <span className="pt-2 text-base text-center xl:text-2xl">
+              continents
+            </span>
+          </div>
+        </div>
+      </div>
+      <div className="hidden sm:flex w-1/4">
+        <div className="relative w-full h-full">
+          <div className="absolute top-[40%] w-full flex items-center justify-center flex-col my-auto">
+            <span className="text-4xl text-center font-bold xl:text-6xl">
+              {val4} %
+            </span>
+            <span className="pt-2  text-base text-center xl:text-2xl">
+              satisfied customers
+            </span>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -143,7 +190,7 @@ export const Screen4 = () => {
   const [isGsapReady, setIsGsapReady] = useState(false);
   const gsapModules = useRef<any>({});
 
-  useEffect(() => {
+  useGSAP(() => {
     Promise.all([
       import("gsap").then((mod) => mod.default),
       import("gsap/dist/ScrollTrigger").then((mod) => mod.ScrollTrigger),
@@ -155,15 +202,15 @@ export const Screen4 = () => {
     });
   }, []);
 
-  useEffect(() => {
+  useGSAP(() => {
     if (!isGsapReady) return;
-  
+
     const { gsap, ScrollTrigger } = gsapModules.current;
     const triggers = createScreen4Triggers({
       gsap,
       ScrollTrigger,
     });
-  
+
     return () => {
       triggers.mainTriggerDown.kill();
     };
@@ -199,7 +246,7 @@ export const Screen5 = () => {
   const [isGsapReady, setIsGsapReady] = useState(false);
   const gsapModules = useRef<any>({});
 
-  useEffect(() => {
+  useGSAP(() => {
     Promise.all([
       import("gsap").then((mod) => mod.default),
       import("gsap/dist/ScrollTrigger").then((mod) => mod.ScrollTrigger),
@@ -211,15 +258,15 @@ export const Screen5 = () => {
     });
   }, []);
 
-  useEffect(() => {
+  useGSAP(() => {
     if (!isGsapReady) return;
-  
+
     const { gsap, ScrollTrigger } = gsapModules.current;
     const triggers = createScreen5Triggers({
       gsap,
       ScrollTrigger,
     });
-  
+
     return () => {
       triggers.mainTriggerDown.kill();
       triggers.mainTriggerUp.kill();
@@ -229,9 +276,9 @@ export const Screen5 = () => {
   return (
     <div
       id="screen5"
-      className="relative w-full  h-screen  items-center justify-end text-white font-['Prompt']"
+      className="relative w-full h-screen items-center justify-end text-white font-['Prompt']"
     >
-      <div className="absolute w-1/3 top-1/3 right-30 text-white font-['Prompt'] text-xl pt-3">
+      <div className="px-8 text-md absolute lg:text-right right-0 text-center w-full lg:w-1/3 top-1/3 lg:right-30 text-white font-['Prompt'] lg:text-xl pt-3">
         "At B One Consulting,{" "}
         <span className="italic">
           {" "}

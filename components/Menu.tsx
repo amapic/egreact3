@@ -2,6 +2,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { getDistanceFromTop } from "@/utils/utils";
+import { useGSAP } from "@gsap/react";
+
+gsap.registerPlugin(useGSAP);
 
 const MenuItem = ({ text, id }: { text: string; id: string }) => {
   const lineRef = useRef<HTMLDivElement>(null);
@@ -69,7 +72,6 @@ const MenuItem = ({ text, id }: { text: string; id: string }) => {
           isVisible ? "bg-white" : "bg-[rgb(50,50,50)]"
         } w-[24px] cursor-pointer z-10 transition-colors duration-200`}
       />
-
     </div>
   );
 };
@@ -92,6 +94,7 @@ const Menu = () => {
   const fakeContainerRef = useRef<HTMLDivElement>(null);
   const initialHeightRef = useRef<number>(0);
   let currentAnimation: gsap.core.Timeline | null = null;
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
     const container = menuContainerRef.current;
@@ -111,16 +114,18 @@ const Menu = () => {
       currentAnimation = timeline;
       const stagger = 0.1;
 
-      
-
       const items = container?.querySelectorAll("[data-submenu]");
 
-      timeline.to(items, {
-        marginBottom: 15,
-        duration: 0.3,
-        stagger: stagger,
-        ease: "power2.out",
-      }, "<");
+      timeline.to(
+        items,
+        {
+          marginBottom: 15,
+          duration: 0.3,
+          stagger: stagger,
+          ease: "power2.out",
+        },
+        "<"
+      );
 
       const textElements = Array.from(
         container?.querySelectorAll("[data-text]") || []
@@ -158,18 +163,14 @@ const Menu = () => {
           stagger: stagger,
           ease: "power2.out",
           onComplete: () => {
-            // setAnimationRef(animationRef+1) 
+            // setAnimationRef(animationRef+1)
           },
-
         },
-        ">",
-        
+        ">"
       );
     };
 
     const handleMouseLeave = () => {
-      
-
       const timeline = gsap.timeline();
       currentAnimation = timeline;
 
@@ -178,14 +179,18 @@ const Menu = () => {
       timeline.to(container, {
         height: initialHeightRef.current,
         duration: 0.3,
-        ease: "power2.out"
+        ease: "power2.out",
       });
 
-      timeline.to(items, {
-        marginBottom: 1,
-        duration: 0.3,
-        ease: "power2.out",
-      }, ">");
+      timeline.to(
+        items,
+        {
+          marginBottom: 1,
+          duration: 0.3,
+          ease: "power2.out",
+        },
+        ">"
+      );
 
       const textElements = Array.from(
         container?.querySelectorAll("[data-text]") || []
@@ -219,11 +224,9 @@ const Menu = () => {
             // animationRef.current+=1
           },
         },
-        ">",
+        ">"
       );
     };
-
-    
 
     container?.addEventListener("mouseover", handleMouseEnter);
     container?.addEventListener("mouseleave", handleMouseLeave);
@@ -238,7 +241,7 @@ const Menu = () => {
     };
   }, []);
 
-  useEffect(() => {
+  useGSAP(() => {
     gsap.fromTo(
       helloRef.current,
       {
@@ -290,25 +293,50 @@ const Menu = () => {
       </div>
       {/* <div className="fixed top-27 h-2 w-screen bg-gradient-to-b from-[rgb(16,16,16)] to-transparent z-20"></div> */}
 
-      <div className="flex justify-between items-center">
+      <div className="w-screen flex justify-around sm:justify-between items-center">
         <div
           ref={bOneRef}
-          className="compressed-text fixed text-white top-6 left-8 font-xl font-['Prompt'] z-20"
+          className="compressed-text sm:fixed text-white sm:top-6 sm:left-8 font-['Prompt'] z-20"
         >
-          <span className="b-compressed-text">B </span>
-          <span className="">one consulting</span>
+          <span className="text-xl xl:text-2xl b-compressed-text">B </span>
+          <span className="text-xl xl:text-2xl">one consulting</span>
         </div>
 
         <button
           ref={helloRef}
-          className=" z-20 w-48  fixed top-8 right-8 border border-purple text-purple rounded-full"
+          className="px-2 z-20 sm:w-48 text-[0.8rem] sm:text-md sm:fixed sm:top-8 sm:right-8 border border-purple text-purple rounded-full"
         >
           SAY HELLO
         </button>
+        <div className="flex pt-1 sm:hidden">
+          {/* Hamburger Button */}
+          <button
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className=" flex flex-col justify-center items-center w-10 h-10 space-y-2 z-50"
+          >
+            <span
+              className={`block w-8 h-0.5 bg-purple transition-transform duration-300 ${
+                isMenuOpen ? "rotate-45 translate-y-2.5" : ""
+              }`}
+            ></span>
+            <span
+              className={`block w-8 h-0.5 bg-purple transition-opacity duration-300 ${
+                isMenuOpen ? "opacity-0" : ""
+              }`}
+            ></span>
+            <span
+              className={`block w-8 h-0.5 bg-purple transition-transform duration-300 ${
+                isMenuOpen ? "-rotate-45 -translate-y-2.5" : ""
+              }`}
+            ></span>
+          </button>
+
+          {/* Menu Content */}
+        </div>
       </div>
       <div
         ref={menuContainerRef}
-        className="bg-red-500 fixed top-30 right-10 flex flex-col  pl-1 z-20 "
+        className="hidden sm:flex bg-red-500 fixed top-30 right-10 flex flex-col  pl-1 z-20 "
       >
         <div className="">
           {menuItems.map((item, index) => (
@@ -318,8 +346,6 @@ const Menu = () => {
         {/* <div ref={fakeContainerRef} className=" absolute top-0 right-0 w-full h-[200px] z-0"></div> */}
       </div>
     </>
-
-
   );
 };
 

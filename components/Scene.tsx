@@ -20,7 +20,7 @@ extend({ Bloom });
 const CustomGeometryParticles = (props: { caca: (value: boolean) => void }) => {
   const performanceLevel = useRef<"high" | "medium" | "low">("high");
   const MAX_PARTICLES = 10000;
-  const MIN_PARTICLES = 1000;
+  const MIN_PARTICLES = 10000;
   const count = useRef(MAX_PARTICLES);
   const pointSize = useRef(20.0); // Taille de base des points
   const { caca } = props;
@@ -552,8 +552,8 @@ const ChangeCameraPosition = ({
   }, []);
 
   useFrame(() => {
-    console.log(camera.position);
-    console.log(camera.rotation);
+    // console.log(camera.position);
+    // console.log(camera.rotation);
     // Applique le lissage à chaque frame
     // if (posCamera.current === "pos2") {
     // const smoothFactor = 0.1;
