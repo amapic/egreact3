@@ -44,7 +44,7 @@ const MenuItem = ({ text, id }: { text: string; id: string }) => {
 
   const scrollToSection = () => {
     const element = document.getElementById(id);
-    alert("scrollToSection");
+    // alert("scrollToSection");
     if (element) {
       element.scrollIntoView({
         behavior: "smooth",
@@ -56,13 +56,13 @@ const MenuItem = ({ text, id }: { text: string; id: string }) => {
   return (
     <div
       data-submenu
-      className="flex bg-blue-500 items-center cursor-pointer group z-10"
+      className="flex items-center cursor-pointer group z-10"
       onClick={scrollToSection}
     >
       <div
         ref={textRef}
         data-text
-        className="z-10 cursor-pointer hover:font-white text-[rgb(230,230,230)] text-md opacity-0 -translate-x-[10px] w-[200px] leading-4 text-right pr-4"
+        className="z-10 cursor-pointer hover:font-white text-[rgb(230,230,230)] text-sm opacity-0 -translate-x-[10px] w-[200px] leading-4 text-right pr-4"
       >
         {text}
       </div>
@@ -92,6 +92,7 @@ const Menu = () => {
   const bOneRef = useRef<HTMLDivElement>(null);
   const barreContainerRef = useRef<HTMLDivElement>(null);
   const fakeContainerRef = useRef<HTMLDivElement>(null);
+  const hamburgerRef = useRef<HTMLDivElement>(null);
   const initialHeightRef = useRef<number>(0);
   let currentAnimation: gsap.core.Timeline | null = null;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -103,7 +104,9 @@ const Menu = () => {
     initialHeightRef.current = container?.offsetHeight || 0;
 
     const handleMouseEnter = () => {
+      
       if (isAnimating) return;
+      console.log("handleMouseEnter");
       isAnimating = true;
 
       if (currentAnimation) {
@@ -119,7 +122,7 @@ const Menu = () => {
       timeline.to(
         items,
         {
-          marginBottom: 15,
+          marginBottom: 10,
           duration: 0.3,
           stagger: stagger,
           ease: "power2.out",
@@ -135,11 +138,11 @@ const Menu = () => {
         container?.querySelectorAll("[data-submenu]") || []
       ).reverse();
 
-      timeline.to(subMenuElements, {
-        y: (index) => 50 - index * 10,
-        duration: 0.3,
-        ease: "power2.out",
-      });
+      // timeline.to(subMenuElements, {
+      //   y: (index) => 40 - index * 10,
+      //   duration: 0.3,
+      //   ease: "power2.out",
+      // });
 
       // Utiliser la hauteur initiale stockée
       // timeline.to(container, {
@@ -171,8 +174,13 @@ const Menu = () => {
     };
 
     const handleMouseLeave = () => {
+      console.log("handleMouseLeave");
       const timeline = gsap.timeline();
-      currentAnimation = timeline;
+      // currentAnimation = timeline;
+
+      if (currentAnimation) {
+        currentAnimation.kill();
+      }
 
       const items = container?.querySelectorAll("[data-submenu]");
 
@@ -271,6 +279,20 @@ const Menu = () => {
     );
 
     gsap.fromTo(
+      hamburgerRef.current,
+      {
+        y: -300, // Position de départ (à gauche)
+        opacity: 0,
+      },
+      {
+        y: 0, // Position finale (position actuelle)
+        opacity: 1,
+        duration: 2,
+        ease: "power3.out",
+      }
+    );
+
+    gsap.fromTo(
       menuContainerRef.current,
       {
         x: 300, // Position de départ (à gauche)
@@ -287,28 +309,28 @@ const Menu = () => {
 
   return (
     <>
-      <div className="fixed h-27 w-screen flex-row items-center justify-between text-white z-20">
-        <div className="bg-[rgb(16,16,16)] h-3/4 w-full"></div>
-        <div className="bg-gradient-to-b from-[rgb(16,16,16)] to-transparent h-1/4 w-full"></div>
+      <div className="fixed h-16 sm:h-27 w-screen flex-row items-center justify-between text-white z-[100]">
+        <div className="bg-[rgb(254,16,16)] h-[4/5] w-full"></div>
+        <div className="bg-gradient-to-b from-[rgb(255,16,16)] to-transparent h-[1/5] w-full"></div>
       </div>
       {/* <div className="fixed top-27 h-2 w-screen bg-gradient-to-b from-[rgb(16,16,16)] to-transparent z-20"></div> */}
 
-      <div className="w-screen flex justify-around sm:justify-between items-center">
+      <div className="px-4 fixed top-0 left-0 w-screen flex justify-between items-center z-30">
         <div
           ref={bOneRef}
-          className="compressed-text sm:fixed text-white sm:top-6 sm:left-8 font-['Prompt'] z-20"
+          className=" compressed-text sm:fixed text-white sm:top-6 sm:left-8 font-['Prompt'] z-20"
         >
-          <span className="text-xl xl:text-2xl b-compressed-text">B </span>
+          <span className="text-left text-xl xl:text-2xl b-compressed-text">B </span>
           <span className="text-xl xl:text-2xl">one consulting</span>
         </div>
 
         <button
           ref={helloRef}
-          className="px-2 z-20 sm:w-48 text-[0.8rem] sm:text-md sm:fixed sm:top-8 sm:right-8 border border-purple text-purple rounded-full"
+          className="px-2 z-20 sm:w-48 text-[0.8rem] sm:text-md sm:fixed sm:top-8 sm:right-10 border border-purple text-purple rounded-full"
         >
           SAY HELLO
         </button>
-        <div className="flex pt-1 sm:hidden">
+        <div className="flex pt-1 sm:hidden" ref={hamburgerRef}>
           {/* Hamburger Button */}
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -336,7 +358,7 @@ const Menu = () => {
       </div>
       <div
         ref={menuContainerRef}
-        className="hidden sm:flex bg-red-500 fixed top-30 right-10 flex flex-col  pl-1 z-20 "
+        className="pr-1 hidden sm:block fixed top-30 right-10 flex-col  pl-1 z-20 "
       >
         <div className="">
           {menuItems.map((item, index) => (

@@ -7,7 +7,10 @@
   padding: 0;
   box-sizing: border-box;
 }
-
+:root {
+  --margeBodySectionsm: 8rem;
+  --margeBodySection: 4rem;
+}
 /* body{
   overflow: hidden;
 } */
@@ -32,6 +35,8 @@
 .content {
   position: relative;
   z-index: 1;
+  width: 100dvw;
+  overflow-x: hidden;
 }
 
 .spacer {
@@ -192,6 +197,10 @@
 .title2 {
   transform: scaleY(1.0); /* Compresse horizontalement le texte */
   transform-origin: left center; /* Garde l'alignement à gauche */
+}
+
+.margeBodySection{
+
 }
 
 

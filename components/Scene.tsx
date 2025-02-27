@@ -1,16 +1,14 @@
 "use client";
 import { useMemo, useRef, useEffect, useState } from "react";
 import { OrbitControls, MeshTransmissionMaterial } from "@react-three/drei";
-import {
-  Canvas,
-  useFrame,
-  extend,
-  useThree,
-} from "@react-three/fiber";
+import { Canvas, useFrame, extend, useThree } from "@react-three/fiber";
 import { lerp, damp } from "three/src/math/MathUtils";
 import * as THREE from "three";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import React from "react";
+import dynamic from "next/dynamic";
+// Enlever cet import qui cause l'erreur
+// import { WebGPURenderer } from 'three/examples/jsm/renderers/webgpu/WebGPURenderer';
 // Import des composants WebGPU
 // import WebGPU from 'three/addons/capabilities/WebGPU.js';
 // import WebGPURenderer from 'three/addons/renderers/webgpu/WebGPURenderer.js';
@@ -20,7 +18,7 @@ extend({ Bloom });
 const CustomGeometryParticles = (props: { caca: (value: boolean) => void }) => {
   const performanceLevel = useRef<"high" | "medium" | "low">("high");
   const MAX_PARTICLES = 10000;
-  const MIN_PARTICLES = 10000;
+  const MIN_PARTICLES = 5000;
   const count = useRef(MAX_PARTICLES);
   const pointSize = useRef(20.0); // Taille de base des points
   const { caca } = props;
@@ -377,8 +375,8 @@ type CameraTransition = {
   start: CameraState;
   end: CameraState;
   scroll: {
-    start: number;  // En nombre de hauteurs d'écran depuis screen2
-    end: number;    // En nombre de hauteurs d'écran depuis screen2
+    start: number; // En nombre de hauteurs d'écran depuis screen2
+    end: number; // En nombre de hauteurs d'écran depuis screen2
   };
 };
 
@@ -387,22 +385,38 @@ const cameraTransitions: CameraTransition[] = [
     // Première transition (pendant screen2)
     start: {
       position: { x: -1.513451287958616, y: -0.8576845145905376, z: -0.16 },
-      rotation: { x: 1.76, y: -1.04, z: 1.79 }
+      rotation: { x: 1.76, y: -1.04, z: 1.79 },
     },
     end: {
-      position: { x: -8.411752105336905, y: -0.5711750747998187, z: -1.5436274007310815 },
-      rotation: { x: 2.7871939668087276, y: -1.3775694456088587, z: 2.793264418094779 }
+      position: {
+        x: -8.411752105336905,
+        y: -0.5711750747998187,
+        z: -1.5436274007310815,
+      },
+      rotation: {
+        x: 2.7871939668087276,
+        y: -1.3775694456088587,
+        z: 2.793264418094779,
+      },
     },
     scroll: {
-      start: 0,    // Début de screen2
-      end: 1       // Une hauteur d'écran plus tard
-    }
+      start: 0, // Début de screen2
+      end: 1, // Une hauteur d'écran plus tard
+    },
   },
   {
     // Deuxième transition (toujours pendant screen2)
     start: {
-      position: { x: -8.411752105336905, y: -0.5711750747998187, z: -1.5436274007310815 },
-      rotation: { x: 2.7871939668087276, y: -1.3775694456088587, z: 2.793264418094779 }
+      position: {
+        x: -8.411752105336905,
+        y: -0.5711750747998187,
+        z: -1.5436274007310815,
+      },
+      rotation: {
+        x: 2.7871939668087276,
+        y: -1.3775694456088587,
+        z: 2.793264418094779,
+      },
     },
     // end: {
     //   position: { x:  -8.411752105336905, y: -0.5711750747998187, z: -1.5436274007310815 },
@@ -415,41 +429,61 @@ const cameraTransitions: CameraTransition[] = [
     end: {
       // position: { x:  3.0411752105336905, y: -6.6411750747998187, z: 5.6274007310815 },
       // position: { x:  1.8311752105336905, y: -1.6411750747998187, z: -1.4874007310815 },
-      position: { x:  0.8911752105336905, y: -1.6411750747998187, z: -1.4874007310815 },
+      position: {
+        x: 0.8911752105336905,
+        y: -1.6411750747998187,
+        z: -1.4874007310815,
+      },
       // rotation: { x: 0.86, y: -0.05, z: 0.06 }
-      rotation: { x: 2.3371939668087276, y:0.3975694456088587, z: -2.793264418094779 }
+      rotation: {
+        x: 2.3371939668087276,
+        y: 0.3975694456088587,
+        z: -2.793264418094779,
+      },
       // rotation: { x: 1.26, y: -1.05, z: 0.1 }
     },
     scroll: {
-      start: 1,    // Une hauteur d'écran après le début de screen2
-      end:5     // Deux hauteurs d'écran après le début de screen2
-    }
+      start: 1, // Une hauteur d'écran après le début de screen2
+      end: 5, // Deux hauteurs d'écran après le début de screen2
+    },
   },
   {
     // Deuxième transition (toujours pendant screen2)
     start: {
       // position: { x:  -6.611752105336905, y: -8.5711750747998187, z: -2.936274007310815 },
       // rotation: { x: 1.527185658257895, y: -2.09418863341496625, z: 0.215476753365755 }
-      position: { x:  0.8911752105336905, y: -1.6411750747998187, z: -1.4874007310815 },
+      position: {
+        x: 0.8911752105336905,
+        y: -1.6411750747998187,
+        z: -1.4874007310815,
+      },
       // rotation: { x: 0.86, y: -0.05, z: 0.06 }
-      rotation: { x: 2.3371939668087276, y:0.3975694456088587, z: -2.793264418094779 }
+      rotation: {
+        x: 2.3371939668087276,
+        y: 0.3975694456088587,
+        z: -2.793264418094779,
+      },
     },
 
     end: {
       // position: { x:  3.0411752105336905, y: -6.6411750747998187, z: 5.6274007310815 },
-      position: { x:  1.8311752105336905, y: -1.6411750747998187, z: -1.4874007310815 },
+      position: {
+        x: 1.8311752105336905,
+        y: -1.6411750747998187,
+        z: -1.4874007310815,
+      },
       // rotation: { x: 0.86, y: -0.05, z: 0.06 }
-      rotation: { x: 1.26, y: -1.05, z: 0.1 }
+      rotation: { x: 1.26, y: -1.05, z: 0.1 },
     },
     // end: {
     //   position: { x:  -7.8311752105336905, y: -10.6411750747998187, z: -5.4874007310815 },
     //   rotation: { x: 1.89, y: 0.07, z: -2.91 }
     // },
     scroll: {
-      start: 5,    // Une hauteur d'écran après le début de screen2
-      end:6     // Deux hauteurs d'écran après le début de screen2
-    }
-  }
+      start: 5, // Une hauteur d'écran après le début de screen2
+      end: 6, // Deux hauteurs d'écran après le début de screen2
+    },
+  },
 ];
 
 // Fonction pour interpoler entre deux états de caméra
@@ -575,41 +609,45 @@ const ChangeCameraPosition = ({
   };
 
   const EvolutionPositionCamera = () => {
-    const screen2 = document.getElementById('screen2');
+    const screen2 = document.getElementById("screen2");
     if (!screen2) return;
 
     const screen2Start = screen2.offsetTop;
     const windowHeight = window.innerHeight;
     const scrollFromScreen2 = window.scrollY - screen2Start;
-    const scrollInScreens = scrollFromScreen2 / windowHeight; // Nombre d'écrans scrollés depuis screen2
+    const scrollInScreens = scrollFromScreen2 / windowHeight;
 
     if (scrollFromScreen2 >= 0) {
       posCamera.current = "pos2";
+    } else {
+      return;
     }
 
-    console.log(scrollInScreens);
     // Parcourir toutes les transitions
     cameraTransitions.forEach((transition) => {
-      if (scrollInScreens >= transition.scroll.start && scrollInScreens <= transition.scroll.end) {
-        const progress = (scrollInScreens - transition.scroll.start) / 
-                        (transition.scroll.end - transition.scroll.start);
-        
+      if (
+        scrollInScreens >= transition.scroll.start &&
+        scrollInScreens <= transition.scroll.end
+      ) {
+        const progress =
+          (scrollInScreens - transition.scroll.start) /
+          (transition.scroll.end - transition.scroll.start);
+
         const newCameraState = lerpCameraState(
           transition.start,
           transition.end,
           Math.min(1, Math.max(0, progress))
         );
 
-        camera.position.set(
-          newCameraState.position.x,
-          newCameraState.position.y,
-          newCameraState.position.z
-        );
-        camera.rotation.set(
-          newCameraState.rotation.x,
-          newCameraState.rotation.y,
-          newCameraState.rotation.z
-        );
+        // Ajouter le lerp pour la position
+        camera.position.x = lerp(camera.position.x, newCameraState.position.x, 0.1);
+        camera.position.y = lerp(camera.position.y, newCameraState.position.y, 0.1);
+        camera.position.z = lerp(camera.position.z, newCameraState.position.z, 0.1);
+
+        // Ajouter le lerp pour la rotation
+        camera.rotation.x = lerp(camera.rotation.x, newCameraState.rotation.x, 0.1);
+        camera.rotation.y = lerp(camera.rotation.y, newCameraState.rotation.y, 0.1);
+        camera.rotation.z = lerp(camera.rotation.z, newCameraState.rotation.z, 0.1);
       }
     });
   };
@@ -706,20 +744,33 @@ const ChangeCameraPosition = ({
       const handleScroll = () => {
         if (!ticking) {
           window.requestAnimationFrame(() => {
-            // interference entre les deux fonctions
-            // if (posCamera.current === "pos1") {
             EvolutionPositionCamera();
-            // }
-            // GlissementCamera();
             ticking = false;
           });
-
           ticking = true;
         }
       };
 
-      document.addEventListener("scroll", handleScroll);
-      return () => document.removeEventListener("scroll", handleScroll);
+      // Gérer à la fois le scroll et le touch
+      const addEventListeners = () => {
+        // Scroll desktop
+        document.addEventListener("scroll", handleScroll, { passive: true });
+        
+        // Touch events pour mobile
+        document.addEventListener("touchstart", handleScroll, { passive: true });
+        document.addEventListener("touchmove", handleScroll, { passive: true });
+        document.addEventListener("touchend", handleScroll, { passive: true });
+      };
+
+      const removeEventListeners = () => {
+        document.removeEventListener("scroll", handleScroll);
+        document.removeEventListener("touchstart", handleScroll);
+        document.removeEventListener("touchmove", handleScroll);
+        document.removeEventListener("touchend", handleScroll);
+      };
+
+      addEventListeners();
+      return () => removeEventListeners();
     }
   }, []); // Dépendances vides pour n'exécuter qu'une seule fois
 
@@ -763,6 +814,11 @@ const ChangeCameraPosition = ({
   return null;
 };
 
+const DynamicCanvas = dynamic(
+  () => import("@react-three/fiber").then((mod) => mod.Canvas),
+  { ssr: false }
+);
+
 export const Scene = ({
   param,
   caca,
@@ -772,25 +828,69 @@ export const Scene = ({
   caca: (value: boolean) => void;
   animateCanvas1: boolean;
 }) => {
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  if (!isClient) return null;
+
   return (
     <div
       id="screen1"
-      className="fixed top-0 left-0 w-full h-screen bg-grey"
-      style={{ width: "100%", height: "100vh" }}
+      className="fixed top-0 left-0 w-full h-screen bg-grey z-10"
+      style={{ 
+        width: "100%", 
+        height: "100vh",
+        touchAction: "pan-y" // Permet le scroll vertical
+      }}
     >
-      <Canvas
+      <DynamicCanvas
         frameloop={animateCanvas1 ? "always" : "never"}
         camera={{
           position: [-0.43, -8.56, -0.09],
           rotation: [1.58, -0.05, 1.79],
         }}
-        gl={{
-          alpha: true,
-          antialias: false,
-          powerPreference: "high-performance",
+        style={{ 
+          touchAction: "pan-y" // Permet le scroll vertical sur le canvas
         }}
-        onCreated={({ gl, scene, camera }) => {
-          gl.setClearColor("#101010", 1);
+        onTouchMove={(e) => {
+          e.stopPropagation();
+        }}
+        gl={async (canvas) => {
+          // if (navigator.gpu) {
+          if (2 == 1) {
+            try {
+              const { WebGPURenderer } = await import(
+                "three/examples/jsm/renderers/webgpu/WebGPURenderer"
+              );
+              const renderer = new WebGPURenderer({ canvas });
+              renderer.setClearColor("#161616", 1);
+              return renderer;
+            } catch (e) {
+              console.warn("WebGPU failed, falling back to WebGL");
+            }
+          }
+          console.log("WebGL");
+          // Fallback to default WebGL renderer
+          const renderer = new THREE.WebGLRenderer({
+            canvas,
+            alpha: true,
+            antialias: false,
+            powerPreference: "high-performance",
+          });
+          renderer.setClearColor("#161616", 1);
+          return renderer;
+        }}
+        onCreated={async ({ gl }) => {
+          if (gl.constructor.name === "WebGPURenderer") {
+            try {
+              await gl.init();
+            } catch (e) {
+              console.warn("WebGPU initialization failed");
+            }
+          }
         }}
       >
         <ambientLight intensity={0.5} />
@@ -803,9 +903,14 @@ export const Scene = ({
             mipmapBlur
           />
         </EffectComposer>
-        <OrbitControls enableZoom={false} enablePan={false} enableRotate={false} />
+        <OrbitControls
+          enableZoom={false}
+          enablePan={false}
+          enableRotate={false}
+          enableDamping={false}
+        />
         <ChangeCameraPosition param={param} />
-      </Canvas>
+      </DynamicCanvas>
     </div>
   );
 };
