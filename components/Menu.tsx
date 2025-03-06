@@ -104,7 +104,6 @@ const Menu = () => {
     initialHeightRef.current = container?.offsetHeight || 0;
 
     const handleMouseEnter = () => {
-      
       if (isAnimating) return;
       console.log("handleMouseEnter");
       isAnimating = true;
@@ -309,9 +308,11 @@ const Menu = () => {
 
   return (
     <>
-      <div className="fixed h-16 sm:h-27 w-screen flex-row items-center justify-between text-white z-[100]">
-        <div className="bg-[rgb(254,16,16)] h-[4/5] w-full"></div>
-        <div className="bg-gradient-to-b from-[rgb(255,16,16)] to-transparent h-[1/5] w-full"></div>
+      <div>
+        <header className="fixed h-16 sm:h-27 w-screen flex flex-col items-center justify-between text-white z-20">
+          <div className="bg-[rgb(16,16,16)] h-4/5 w-full"></div>
+          <div className="bg-gradient-to-b from-[rgb(16,16,16)] to-transparent h-1/5 w-full"></div>
+        </header>
       </div>
       {/* <div className="fixed top-27 h-2 w-screen bg-gradient-to-b from-[rgb(16,16,16)] to-transparent z-20"></div> */}
 
@@ -320,7 +321,9 @@ const Menu = () => {
           ref={bOneRef}
           className=" compressed-text sm:fixed text-white sm:top-6 sm:left-8 font-['Prompt'] z-20"
         >
-          <span className="text-left text-xl xl:text-2xl b-compressed-text">B </span>
+          <span className="text-left text-xl xl:text-2xl b-compressed-text">
+            B{" "}
+          </span>
           <span className="text-xl xl:text-2xl">one consulting</span>
         </div>
 

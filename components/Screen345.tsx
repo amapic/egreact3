@@ -228,7 +228,7 @@ export const Screen4 = () => {
       id="screen4"
       className="relative w-full h-screen text-white items-center justify-end z-0"
     >
-      <div className="text-md text-white text-center left-[var(--margeBodySection)] lg:left-[var(--margeBodySectionsm)] w-full px-8 lg:text-left lg:w-1/2 lg:text-xl absolute top-1/3 lg:left-30 text-black font-['Prompt'] pt-3 z-0">
+      <div className="text-md text-white text-center  lg:left-[var(--margeBodySectionsm)] w-full px-8 lg:text-left lg:w-1/2 lg:text-xl absolute top-1/3 lg:left-30 text-black font-['Prompt'] pt-3 z-0">
         <span className="italic"> For over a decade </span>B one consulting has
         been a driving force in the business consulting leaving a lasting mark
         across <span>four continents.</span>
@@ -285,7 +285,7 @@ export const Screen5 = () => {
       id="screen5"
       className="relative w-full h-screen items-center justify-end text-white font-['Prompt']"
     >
-      <div className="right-[var(--margeBodySection)] lg:right-[var(--margeBodySectionsm)] px-8 text-md absolute lg:text-right  text-center w-full lg:w-1/2 top-1/3  text-white font-['Prompt'] lg:text-xl pt-3">
+      <div className=" lg:right-[var(--margeBodySectionsm)] px-8 text-md absolute lg:text-right  text-center w-full lg:w-1/2 top-1/3  text-white font-['Prompt'] lg:text-xl pt-3">
         "At B One Consulting,{" "}
         <span className="italic">
           {" "}

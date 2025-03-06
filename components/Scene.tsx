@@ -1,12 +1,19 @@
 "use client";
 import { useMemo, useRef, useEffect, useState } from "react";
-import { OrbitControls, MeshTransmissionMaterial } from "@react-three/drei";
+import {
+  OrbitControls,
+  MeshTransmissionMaterial,
+  PerformanceMonitor,
+  Stats,
+} from "@react-three/drei";
 import { Canvas, useFrame, extend, useThree } from "@react-three/fiber";
 import { lerp, damp } from "three/src/math/MathUtils";
 import * as THREE from "three";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import React from "react";
+// import { Stats } from "https://cdn.skypack.dev/@react-three/drei/Stats";
 import dynamic from "next/dynamic";
+// import { Perf } from '@react-three/drei'
 // Enlever cet import qui cause l'erreur
 // import { WebGPURenderer } from 'three/examples/jsm/renderers/webgpu/WebGPURenderer';
 // Import des composants WebGPU
@@ -15,13 +22,15 @@ import dynamic from "next/dynamic";
 // import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 extend({ Bloom });
-const CustomGeometryParticles = (props: { caca: (value: boolean) => void }) => {
+const CustomGeometryParticles = (props: {
+  setSceneLoaded: (value: boolean) => void;
+}) => {
   const performanceLevel = useRef<"high" | "medium" | "low">("high");
   const MAX_PARTICLES = 10000;
   const MIN_PARTICLES = 5000;
   const count = useRef(MAX_PARTICLES);
   const pointSize = useRef(20.0); // Taille de base des points
-  const { caca } = props;
+  const {} = props;
   const frameCountRef = useRef(0);
   const points = useRef();
   const referencePoints = useRef(); // Points de référence non affichés
@@ -122,7 +131,7 @@ const CustomGeometryParticles = (props: { caca: (value: boolean) => void }) => {
       } else if (cpuCores <= 8 || memory < 8) {
         performanceLevel.current = "medium";
         count.current = Math.floor(MAX_PARTICLES * 0.5);
-        pointSize.current = 30.0; // Points moyens
+        pointSize.current = 60.0; // Points moyens
         console.log("Medium performance mode:", {
           particles: count.current,
           pointSize: pointSize.current,
@@ -161,14 +170,14 @@ const CustomGeometryParticles = (props: { caca: (value: boolean) => void }) => {
     return positions;
   }, [count.current]);
 
-  const mix = (a: number, b: number, t: number) => a * (1 - t) + b * t;
+  // const mix = (a: number, b: number, t: number) => a * (1 - t) + b * t;
 
   // Initialiser les timesteps aléatoires une seule fois
-  useEffect(() => {
-    particleTimesteps.current = new Float32Array(count.current).map(
-      () => 0.05 + Math.random() * 0.2 // Valeurs entre 0.05 et 0.15
-    );
-  }, [count.current]);
+  // useEffect(() => {
+  //   particleTimesteps.current = new Float32Array(count.current).map(
+  //     () => 0.05 + Math.random() * 0.2 // Valeurs entre 0.05 et 0.15
+  //   );
+  // }, [count.current]);
 
   const a = -5.5;
   const b = 3.5;
@@ -190,9 +199,19 @@ const CustomGeometryParticles = (props: { caca: (value: boolean) => void }) => {
 
   var pos = new THREE.Vector3();
 
-  useFrame((state) => {
+  useFrame((state, delta) => {
+    frameCountRef.current++;
+    if (frameCountRef.current == 100) {
+      props.setSceneLoaded(true);
+    }
+    if (delta > 1 / 50) {
+      return;
+    }
+
     const { clock, camera, mouse } = state;
 
+    // console.log(delta)
+    // if
     lastUpdate.current = clock.elapsedTime; // Sauvegarder le nouveau timestamp
 
     // const currentTime = clock.elapsedTime;
@@ -201,7 +220,6 @@ const CustomGeometryParticles = (props: { caca: (value: boolean) => void }) => {
     uniforms.current.uMouse.value.y = mouse.y;
 
     // console.log(camera.rotation.x, camera.rotation.y, camera.rotation.z);
-    frameCountRef.current++;
 
     // Déclencher un éclair aléatoirement
     if (Math.random() < 0.005) {
@@ -214,9 +232,6 @@ const CustomGeometryParticles = (props: { caca: (value: boolean) => void }) => {
     // Paramètres de Halvorsen
     // Timestep plus élevé pour les leaders
 
-    if (frameCountRef.current == 100) {
-      caca(true);
-    }
     if (frameCountRef.current > 100) {
       normalTimestep = 0.001;
       leaderTimestep = 0.001;
@@ -529,50 +544,51 @@ const ChangeCameraPosition = ({
 
   const camepos1 = useRef(new THREE.Vector3(-0.43, -8.56, -0.09));
 
-  useFrame(({ camera }) => {
-    // Calculer la position cible de la caméra
-    if (posCamera.current === "pos1") {
-      const theta = mouse.current.x * Math.PI * 2; // Angle horizontal
-      const phi = mouse.current.y * Math.PI * 0.5; // Angle vertical
+  // ondulation avec la camera
+  // useFrame(({ camera }) => {
+  //   // Calculer la position cible de la caméra
+  //   if (posCamera.current === "pos1") {
+  //     const theta = mouse.current.x * Math.PI * 2; // Angle horizontal
+  //     const phi = mouse.current.y * Math.PI * 0.5; // Angle vertical
 
-      // Calculer la nouvelle position cible autour de camepos1
-      targetPosition.current.x =
-        camepos1.current.x + maxRadius * Math.sin(theta) * Math.cos(phi);
-      targetPosition.current.y = camepos1.current.y + maxRadius * Math.sin(phi);
-      targetPosition.current.z =
-        camepos1.current.z + maxRadius * Math.cos(theta) * Math.cos(phi);
+  //     // Calculer la nouvelle position cible autour de camepos1
+  //     targetPosition.current.x =
+  //       camepos1.current.x + maxRadius * Math.sin(theta) * Math.cos(phi);
+  //     targetPosition.current.y = camepos1.current.y + maxRadius * Math.sin(phi);
+  //     targetPosition.current.z =
+  //       camepos1.current.z + maxRadius * Math.cos(theta) * Math.cos(phi);
 
-      // Calculer le nouveau point de lookAt autour de l'origine
-      lookAtTarget.current.x =
-        maxLookAtRadius * Math.sin(theta) * Math.cos(phi);
-      lookAtTarget.current.y = maxLookAtRadius * Math.sin(phi);
-      lookAtTarget.current.z =
-        maxLookAtRadius * Math.cos(theta) * Math.cos(phi);
+  //     // Calculer le nouveau point de lookAt autour de l'origine
+  //     lookAtTarget.current.x =
+  //       maxLookAtRadius * Math.sin(theta) * Math.cos(phi);
+  //     lookAtTarget.current.y = maxLookAtRadius * Math.sin(phi);
+  //     lookAtTarget.current.z =
+  //       maxLookAtRadius * Math.cos(theta) * Math.cos(phi);
 
-      // Appliquer un lerp à la position de la caméra
-      // camera.position.x = lerp(
-      //   camera.position.x,
-      //   targetPosition.current.x,
-      //   0.05
-      // );
-      // camera.position.y = lerp(
-      //   camera.position.y,
-      //   targetPosition.current.y,
-      //   0.05
-      // );
-      // camera.position.z = lerp(
-      //   camera.position.z,
-      //   targetPosition.current.z,
-      //   0.05
-      // );
+  //     // Appliquer un lerp à la position de la caméra
+  //     // camera.position.x = lerp(
+  //     //   camera.position.x,
+  //     //   targetPosition.current.x,
+  //     //   0.05
+  //     // );
+  //     // camera.position.y = lerp(
+  //     //   camera.position.y,
+  //     //   targetPosition.current.y,
+  //     //   0.05
+  //     // );
+  //     // camera.position.z = lerp(
+  //     //   camera.position.z,
+  //     //   targetPosition.current.z,
+  //     //   0.05
+  //     // );
 
-      // Mettre à jour la référence de position
-      cameraPosRef.current = camera.position;
+  //     // Mettre à jour la référence de position
+  //     cameraPosRef.current = camera.position;
 
-      // Faire regarder la caméra vers le point oscillant
-      // camera.lookAt(lookAtTarget.current);
-    }
-  });
+  //     // Faire regarder la caméra vers le point oscillant
+  //     // camera.lookAt(lookAtTarget.current);
+  //   }
+  // });
 
   useEffect(() => {
     const handleMouseMove = (event: MouseEvent) => {
@@ -585,16 +601,16 @@ const ChangeCameraPosition = ({
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
 
-  useFrame(() => {
-    // console.log(camera.position);
-    // console.log(camera.rotation);
-    // Applique le lissage à chaque frame
-    // if (posCamera.current === "pos2") {
-    // const smoothFactor = 0.1;
-    // const newZ = lerp(camera.position.z, targetZ.current, smoothFactor);
-    // camera.position.z = newZ;
-    // }
-  });
+  // useFrame(() => {
+  //   // console.log(camera.position);
+  //   // console.log(camera.rotation);
+  //   // Applique le lissage à chaque frame
+  //   // if (posCamera.current === "pos2") {
+  //   // const smoothFactor = 0.1;
+  //   // const newZ = lerp(camera.position.z, targetZ.current, smoothFactor);
+  //   // camera.position.z = newZ;
+  //   // }
+  // });
   // Fonction d'interpolation linéaire (lerp)
   const lerp = (start: number, end: number, factor: number) => {
     return start + (end - start) * factor;
@@ -640,14 +656,38 @@ const ChangeCameraPosition = ({
         );
 
         // Ajouter le lerp pour la position
-        camera.position.x = lerp(camera.position.x, newCameraState.position.x, 0.1);
-        camera.position.y = lerp(camera.position.y, newCameraState.position.y, 0.1);
-        camera.position.z = lerp(camera.position.z, newCameraState.position.z, 0.1);
+        camera.position.x = lerp(
+          camera.position.x,
+          newCameraState.position.x,
+          0.1
+        );
+        camera.position.y = lerp(
+          camera.position.y,
+          newCameraState.position.y,
+          0.1
+        );
+        camera.position.z = lerp(
+          camera.position.z,
+          newCameraState.position.z,
+          0.1
+        );
 
         // Ajouter le lerp pour la rotation
-        camera.rotation.x = lerp(camera.rotation.x, newCameraState.rotation.x, 0.1);
-        camera.rotation.y = lerp(camera.rotation.y, newCameraState.rotation.y, 0.1);
-        camera.rotation.z = lerp(camera.rotation.z, newCameraState.rotation.z, 0.1);
+        camera.rotation.x = lerp(
+          camera.rotation.x,
+          newCameraState.rotation.x,
+          0.1
+        );
+        camera.rotation.y = lerp(
+          camera.rotation.y,
+          newCameraState.rotation.y,
+          0.1
+        );
+        camera.rotation.z = lerp(
+          camera.rotation.z,
+          newCameraState.rotation.z,
+          0.1
+        );
       }
     });
   };
@@ -755,9 +795,11 @@ const ChangeCameraPosition = ({
       const addEventListeners = () => {
         // Scroll desktop
         document.addEventListener("scroll", handleScroll, { passive: true });
-        
+
         // Touch events pour mobile
-        document.addEventListener("touchstart", handleScroll, { passive: true });
+        document.addEventListener("touchstart", handleScroll, {
+          passive: true,
+        });
         document.addEventListener("touchmove", handleScroll, { passive: true });
         document.addEventListener("touchend", handleScroll, { passive: true });
       };
@@ -768,9 +810,16 @@ const ChangeCameraPosition = ({
         document.removeEventListener("touchmove", handleScroll);
         document.removeEventListener("touchend", handleScroll);
       };
-
-      addEventListeners();
-      return () => removeEventListeners();
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      if (!isMobile) {
+        addEventListeners();
+      }
+      return () => {
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        if (!isMobile) {
+          removeEventListeners();
+        }
+      };
     }
   }, []); // Dépendances vides pour n'exécuter qu'une seule fois
 
@@ -821,11 +870,11 @@ const DynamicCanvas = dynamic(
 
 export const Scene = ({
   param,
-  caca,
+  setSceneLoaded,
   animateCanvas1,
 }: {
   param: React.RefObject<number>;
-  caca: (value: boolean) => void;
+  setSceneLoaded: (value: boolean) => void;
   animateCanvas1: boolean;
 }) => {
   const [isClient, setIsClient] = useState(false);
@@ -834,67 +883,62 @@ export const Scene = ({
     setIsClient(true);
   }, []);
 
+  const [dpr, setDpr] = useState(1.5);
+
   if (!isClient) return null;
 
   return (
     <div
       id="screen1"
-      className="fixed top-0 left-0 w-full h-screen bg-grey z-10"
-      style={{ 
-        width: "100%", 
+      className="fixed top-0 left-0 w-full h-screen bg-grey"
+      style={{
+        width: "100%",
         height: "100vh",
-        touchAction: "pan-y" // Permet le scroll vertical
+        // touchAction: "pan-y" // Permet le scroll vertical
       }}
     >
       <DynamicCanvas
+        dpr={dpr}
         frameloop={animateCanvas1 ? "always" : "never"}
         camera={{
           position: [-0.43, -8.56, -0.09],
           rotation: [1.58, -0.05, 1.79],
+          far:11,
+          near:0.01,
         }}
-        style={{ 
-          touchAction: "pan-y" // Permet le scroll vertical sur le canvas
-        }}
-        onTouchMove={(e) => {
-          e.stopPropagation();
-        }}
-        gl={async (canvas) => {
-          // if (navigator.gpu) {
-          if (2 == 1) {
-            try {
-              const { WebGPURenderer } = await import(
-                "three/examples/jsm/renderers/webgpu/WebGPURenderer"
-              );
-              const renderer = new WebGPURenderer({ canvas });
-              renderer.setClearColor("#161616", 1);
-              return renderer;
-            } catch (e) {
-              console.warn("WebGPU failed, falling back to WebGL");
-            }
+        style={
+          {
+            // touchAction: "pan-y" // Permet le scroll vertical sur le canvas
           }
-          console.log("WebGL");
-          // Fallback to default WebGL renderer
+        }
+        onTouchMove={(e) => {
+          // e.stopPropagation();
+        }}
+        gl={(canvas) => {
           const renderer = new THREE.WebGLRenderer({
             canvas,
             alpha: true,
             antialias: false,
-            powerPreference: "high-performance",
+            powerPreference: "default",
           });
-          renderer.setClearColor("#161616", 1);
+          renderer.setClearColor("#161616", 0);
           return renderer;
         }}
-        onCreated={async ({ gl }) => {
-          if (gl.constructor.name === "WebGPURenderer") {
-            try {
-              await gl.init();
-            } catch (e) {
-              console.warn("WebGPU initialization failed");
-            }
-          }
-        }}
+        // onCreated={async ({ gl }) => {
+        //   if (gl.constructor.name === "WebGPURenderer") {
+        //     try {
+        //       await gl.init();
+        //     } catch (e) {
+        //       console.warn("WebGPU initialization failed");
+        //     }
+        //   }
+        // }}
       >
-        <ambientLight intensity={0.5} />
-        <CustomGeometryParticles caca={caca} />
+        {/* <Stats /> */}
+        <PerformanceMonitor onIncline={() => setDpr(2)} onDecline={() => setDpr(1)} >
+         
+
+        </PerformanceMonitor>
         <EffectComposer>
           <Bloom
             intensity={0.1}
@@ -902,7 +946,26 @@ export const Scene = ({
             luminanceSmoothing={0.1}
             mipmapBlur
           />
-        </EffectComposer>
+        </EffectComposer> 
+        <ambientLight intensity={5} />
+        {/* <directionalLight 
+          position={[10, 10, 5]} 
+          intensity={2} 
+          castShadow 
+        />
+        <directionalLight 
+          position={[-10, -10, -5]} 
+          intensity={1} 
+        />
+        <pointLight position={[10, 5, 10]} intensity={2} />
+        <pointLight position={[-10, -5, -10]} intensity={2} />
+        <hemisphereLight 
+          skyColor="#ffffff" 
+          groundColor="#ffffff" 
+          intensity={1} 
+        /> */}
+        <CustomGeometryParticles setSceneLoaded={setSceneLoaded} />
+        
         <OrbitControls
           enableZoom={false}
           enablePan={false}

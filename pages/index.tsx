@@ -8,8 +8,8 @@ import Screen6 from "@/components/Screen6";
 // import RippleShader from "@/components/RippleShader";
 import Interstitial from "@/components/Interstitial";
 // const MemoizedScreen3 = memo(Screen3);
-import WebGPUParticles from '@/components/WebGPUParticles';
-import WebGPUTest from '@/components/WebGPUTest';
+// import WebGPUParticles from '@/components/WebGPUParticles';
+// import WebGPUTest from '@/components/WebGPUTest';
 import { useRef, useState, useEffect, memo, useMemo } from "react";
 const AppHero = memo(Hero);
 import { WaitingScreen } from "@/components/waitingScreen";
@@ -22,17 +22,11 @@ const prompt = Prompt({
 
 
 
-function Home() {
-  return (
-    <main>
-      <WebGPUParticles />
-    </main>
-  );
-}
+
 
 function App() {
   const paramScene = useRef<number>(0);
-  const [sceneLoaded, setSceneLoaded] = useState(true);
+  const [sceneLoaded, setSceneLoaded] = useState(false);
   // const [showScene, setShowScene] = useState(true);
   const [animateCanvas1, setAnimateCanvas1] = useState(true);
 
@@ -46,11 +40,11 @@ function App() {
 
   return (
     <div className={`content ${prompt.className}`}>
-      {/* <WaitingScreen /> */}
-      {/* {!sceneLoaded && <WaitingScreen />} */}
-      <Scene param={paramScene} caca={setSceneLoaded} animateCanvas1={animateCanvas1} />
+      {/* <WaitingScreen setSceneLoaded={setSceneLoaded}/> */}
+      {!sceneLoaded && <WaitingScreen setSceneLoaded={setSceneLoaded} />}
+      <Scene param={paramScene} setSceneLoaded={setSceneLoaded} animateCanvas1={animateCanvas1} />
 
-      <Menu />
+      {sceneLoaded && <Menu /> }
       <Hero />
       <Screen2  />
       <Screen3 />

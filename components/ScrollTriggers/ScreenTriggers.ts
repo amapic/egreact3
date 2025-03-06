@@ -25,7 +25,7 @@ class DomUtils {
   }
 
   static disableScroll() {
-    console.log("disableScroll");
+    // console.log("disableScroll");
     document.addEventListener('wheel', DomUtils.preventDefault, {
       passive: false,
     }); // Disable scrolling in Chrome
@@ -35,7 +35,7 @@ class DomUtils {
   }
 
   static enableScroll() {
-    console.log("enableScroll");
+    // console.log("enableScroll");
     document.removeEventListener('wheel', DomUtils.preventDefault, {
       passive: false,
     }); // Enable scrolling in Chrome

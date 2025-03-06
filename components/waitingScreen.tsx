@@ -7,26 +7,27 @@ const prompt = Prompt({
   display: "swap",
 });
 
-export const WaitingScreen = () => {
+export const WaitingScreen = ({setSceneLoaded}: {setSceneLoaded: (sceneLoaded: boolean) => void}) => {
   const [progress, setProgress] = useState(0);
 
-  // useEffect(() => {
-  //   const startTime = Date.now();
-  //   const duration = 2000; // 2 secondes
+  useEffect(() => {
+    const startTime = Date.now();
+    const duration = 2000; // 2 secondes
 
-  //   const updateProgress = () => {
-  //     const elapsed = Date.now() - startTime;
-  //     const newProgress = Math.min((elapsed / duration) * 100, 100);
-  //     if (newProgress < 100) {
-  //       setProgress(newProgress);
-  //       requestAnimationFrame(updateProgress);
-  //     } else {
-  //       setProgress(100);
-  //     }
-  //   };
+    const updateProgress = () => {
+      const elapsed = Date.now() - startTime;
+      const newProgress = Math.min((elapsed / duration) * 100, 100);
+      if (newProgress < 100) {
+        setProgress(newProgress);
+        requestAnimationFrame(updateProgress);
+      } else {
+        setProgress(100);
+        // setSceneLoaded(true);
+      }
+    };
 
-  //   requestAnimationFrame(updateProgress);
-  // }, []);
+    requestAnimationFrame(updateProgress);
+  }, []);
 
   return (
     <div className="fixed top-0 left-0 w-full h-full bg-black z-30">

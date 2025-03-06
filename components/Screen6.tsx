@@ -184,7 +184,7 @@ export const Screen6ClientsEtPartners = ({
     >
       <RippleShader animate={animateCanvas2} />
       <div
-        className="absolute px-[var(--margeBodySection)] sm:px-[var(--margeBodySectionsm)] sm:top-1/3 mt-32 sm:h-1/3 
+        className="absolute px-[var(--margeBodySection)] sm:px-[var(--margeBodySectionsm)] sm:top-1/3 mt-48 sm:mt-32 sm:h-1/3 
         gap-1
         sm:gap-2
         grid-cols-3 grid-rows-8
@@ -365,7 +365,7 @@ export const Screen6ClientsEtPartners = ({
         </div>
       </div>
 
-      <h1 className="ml-8 text-3xl xl:text-5xl mt-20 sm:mt-32 mb-24 bg-gradient-to-b from-gray-900 to-white bg-clip-text text-transparent">
+      <h1 className="text-center sm:text-left sm:ml-8 text-3xl xl:text-5xl mt-28 sm:mt-32 mb-24 bg-gradient-to-b from-gray-900 to-white bg-clip-text text-transparent">
         CLIENTS & PARTNERS
       </h1>
 
